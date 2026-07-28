@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-07-28T17:46:41.415Z",
+  "docs": [
+    {
+      "slug": "sam_opportunity_ranking_agent",
+      "title": "Agent brief: SAM opportunity embed + rank (ResearchTBR pattern)",
+      "source": "docs/SAM_OPPORTUNITY_RANKING_AGENT.md",
+      "htmlFile": "sam_opportunity_ranking_agent.html"
+    },
+    {
+      "slug": "auth_and_admin_setup",
+      "title": "Auth and admin setup (Clerk + Convex)",
+      "source": "docs/AUTH_AND_ADMIN_SETUP.md",
+      "htmlFile": "auth_and_admin_setup.html"
+    },
+    {
+      "slug": "convex_cli_login",
+      "title": "Convex CLI: login, logout, and self-hosted",
+      "source": "docs/CONVEX_CLI_LOGIN.md",
+      "htmlFile": "convex_cli_login.html"
+    },
+    {
+      "slug": "convex_local_setup",
+      "title": "Convex local setup (self-hosted in Docker)",
+      "source": "docs/CONVEX_LOCAL_SETUP.md",
+      "htmlFile": "convex_local_setup.html"
+    },
+    {
+      "slug": "netlify_deploy",
+      "title": "Deploying the Cobecium web app on Netlify",
+      "source": "docs/NETLIFY_DEPLOY.md",
+      "htmlFile": "netlify_deploy.html"
+    },
+    {
+      "slug": "donotrepeat",
+      "title": "DONOTREPEAT.md — Procurement hub UI styles",
+      "source": "DONOTREPEAT.md",
+      "htmlFile": "donotrepeat.html"
+    },
+    {
+      "slug": "procurementgrid_enhancements-plan",
+      "title": "Enhanced prompt: ProcurementGrid search and state consolidation",
+      "source": "docs/procurementgrid_enhancements.plan.md",
+      "htmlFile": "procurementgrid_enhancements-plan.html"
+    },
+    {
+      "slug": "feedback_seed",
+      "title": "Feedback feature – seed data",
+      "source": "docs/FEEDBACK_SEED.md",
+      "htmlFile": "feedback_seed.html"
+    },
+    {
+      "slug": "readme",
+      "title": "Lynx",
+      "source": "README.md",
+      "htmlFile": "readme.html"
+    },
+    {
+      "slug": "agents",
+      "title": "Notes for AI agents",
+      "source": "AGENTS.md",
+      "htmlFile": "agents.html"
+    },
+    {
+      "slug": "opportunities_integration",
+      "title": "Opportunities integration (Lynx ↔ SamRank)",
+      "source": "docs/OPPORTUNITIES_INTEGRATION.md",
+      "htmlFile": "opportunities_integration.html"
+    },
+    {
+      "slug": "integration",
+      "title": "Sending Prompts to the AI Orchestrator",
+      "source": "docs/INTEGRATION.md",
+      "htmlFile": "integration.html"
+    },
+    {
+      "slug": "skill",
+      "title": "skill",
+      "source": "docs/SKILL.md",
+      "htmlFile": "skill.html"
+    },
+    {
+      "slug": "initprompt",
+      "title": "Use Bun official image",
+      "source": "docs/initprompt.md",
+      "htmlFile": "initprompt.html"
+    }
+  ]
+}

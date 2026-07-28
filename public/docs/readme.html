@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lynx · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: README.md</p>
+    <h1>Lynx</h1>
+<h2>User</h2>
+<p><strong>Lynx</strong> is a procurement hub for government and public-sector sourcing. It gives teams a single place to browse and search <strong>state and city procurement portals</strong>—official websites and direct procurement links—so researchers, business developers, and proposal teams can find opportunities without hunting across dozens of bookmarks or spreadsheets.</p>
+<p><strong>Who it’s for:</strong></p>
+<ul>
+<li><strong>Researchers and BD teams</strong> who need fast access to state/city procurement links by location.</li>
+<li><strong>Capture / BD teams</strong> ranking <strong>federal SAM.gov opportunities</strong> inside Lynx at <strong><code>/opps</code></strong> (CSV → SamRank embed/rank → Yes/No learning).</li>
+<li><strong>Admins</strong> who maintain the link catalog, import bulk data, manage system prompts for AI-assisted “hunts,” and view analytics.</li>
+<li><strong>Organizations</strong> that pair Lynx with an external <strong>AI Orchestrator</strong> to run “hunts”: workflow runs (e.g. lead generation) scoped to a state, using configurable system prompts and optional RAG (e.g. AnythingLLM) or web search.</li>
+</ul>
+<p>The main experience is a <strong>procurement links grid</strong> (by state/city) with search; <strong>Opportunities</strong> ranks federal notices from <code>samoutput/</code> CSVs via SamRank; admins get <strong>System prompts</strong>, <strong>Analytics</strong>, and <strong>Admin</strong> (user/role management). Right-clicking a state card opens <strong>Start Hunt</strong> to launch an Orchestrator workflow with a state-specific prompt.</p>
+<hr>
+<h2>Tech stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Frontend</strong></td>
+<td>React 18, React Router 7, Vite 6, TypeScript 5.6</td>
+</tr>
+<tr>
+<td><strong>Styling</strong></td>
+<td>Tailwind CSS 3, Radix UI (Dialog, Label, Slot), CVA, <code>clsx</code> / <code>tailwind-merge</code></td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td>Clerk (sign-in, sign-up, <code>UserButton</code>); identity synced to Convex</td>
+</tr>
+<tr>
+<td><strong>Backend / DB</strong></td>
+<td>Convex (queries, mutations, actions); self-hosted option via Docker</td>
+</tr>
+<tr>
+<td><strong>Runtime</strong></td>
+<td>Bun or Node for scripts; <code>concurrently</code> for <code>vite</code> + <code>convex dev</code></td>
+</tr>
+</tbody></table>
+<p>Convex provides the API layer and persistence (<code>procurementLinks</code>, <code>chatSystemPrompts</code>, <code>lynxUsers</code>, <code>huntStarts</code>, <code>orchestratorDocsSync</code>, etc.). The app talks to an optional external <strong>Orchestrator</strong> service for workflow creation and polling; see <code>convex/orchestrator.ts</code> and <code>docs/INTEGRATION.md</code>.</p>
+<hr>
+<h2>Architecture overview</h2>
+<ul>
+<li><strong>App (Vite)</strong> – SPA on port 5173; <code>@/</code> alias points at <code>src/</code>. Uses <code>ClerkProvider</code> and <code>ConvexProviderWithClerk</code>; <code>useStoreUserEffect</code> syncs Clerk identity into Convex <code>lynxUsers</code>.</li>
+<li><strong>Convex</strong> – Backend can run in Convex Cloud or <strong>self-hosted</strong> (Docker: backend + dashboard + app container that runs <code>convex dev</code> + Vite). See <code>docs/CONVEX_LOCAL_SETUP.md</code>.</li>
+<li><strong>Routes</strong> – <code>/</code> / <code>/app</code> = Procurement grid; <code>/opps</code> (+ <code>/approved</code>, <code>/status</code>) = federal Opportunities feed (Clerk + SamRank); <code>/system-prompts</code>, <code>/analytics</code>, <code>/admin</code> are admin-only (guarded by <code>AdminOnlyRoute</code> and Convex <code>requireAdmin</code>). Style demos live at <code>/1</code>–<code>/10</code>.</li>
+<li><strong>Data flow</strong> – Grid reads <code>api.procurementLinks.list</code> and <code>api.systemPrompts.list</code>; Opportunities reads Convex <code>api.samRank.*</code> actions that proxy SamRank <code>:5190</code>. Admins can import JSON, add/edit links, and edit prompts. “Start Hunt” uses <code>api.orchestrator.createWorkflow</code> (and related actions) and opens <code>HuntChatModal</code> to poll workflow status.</li>
+<li><strong>Orchestrator docs sync</strong> – Convex can fetch and hash the Orchestrator API docs; the header shows an indicator when stored docs have changed. See <code>convex/orchestratorDocsSync.ts</code> and env vars in <code>docs/CONVEX_LOCAL_SETUP.md</code>.</li>
+</ul>
+<hr>
+<h2>Developer conventions</h2>
+<ul>
+<li><strong>Path alias</strong> – Use <code>@/</code> for <code>src/</code> (e.g. <code>@/components/LynxHeader</code>, <code>@/lib/utils</code>). Configured in <code>tsconfig.json</code> and <code>vite.config.ts</code>.</li>
+<li><strong>Convex</strong> – Backend lives in <code>convex/</code>. Do not edit <code>convex/_generated/*</code> by hand. For self-hosted, do not set <code>CONVEX_DEPLOYMENT</code> when using <code>CONVEX_SELF_HOSTED_*</code>; see <a href="AGENTS.md">AGENTS.md</a> and <a href="docs/CONVEX_CLI_LOGIN.md">docs/CONVEX_CLI_LOGIN.md</a>.</li>
+<li><strong>Auth and roles</strong> – Convex validates Clerk JWTs via <code>auth.config.ts</code>. Roles (<code>admin</code> / <code>user</code>) live in <code>lynxUsers</code>; first admin can be bootstrapped with <code>LYNX_FIRST_ADMIN_CLERK_ID</code>. See <a href="docs/AUTH_AND_ADMIN_SETUP.md">docs/AUTH_AND_ADMIN_SETUP.md</a>.</li>
+<li><strong>UI</strong> – Shared components under <code>src/components/</code> (including <code>ui/</code> for primitives). Prefer Tailwind and existing design tokens (e.g. <code>primary</code>, <code>accent</code>, <code>--base-orange</code>, <code>--base-teal</code>). Style-demo pages are isolated under <code>src/pages/Style*Page.tsx</code> and <code>StylePath10Page.tsx</code>.</li>
+<li><strong>Strict TypeScript</strong> – <code>strict</code>, <code>noUnusedLocals</code>, <code>noUnusedParameters</code>, <code>noUncheckedIndexedAccess</code> in <code>tsconfig.json</code>. Convex types come from <code>convex/_generated</code>.</li>
+<li><strong>Scripts</strong> – <code>bun run dev</code> (or <code>npm run dev</code>) runs Vite and Convex dev concurrently. Build: <code>bun run build</code>; preview: <code>bun run preview</code>.</li>
+</ul>
+<hr>
+<h2>Docs and setup</h2>
+<table>
+<thead>
+<tr>
+<th>Doc</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="docs/OPPORTUNITIES_INTEGRATION.md">docs/OPPORTUNITIES_INTEGRATION.md</a></td>
+<td>Lynx ↔ SamRank Opportunities integration (routes, env, enrich)</td>
+</tr>
+<tr>
+<td><a href="docs/SAM_OPPORTUNITY_RANKING_AGENT.md">docs/SAM_OPPORTUNITY_RANKING_AGENT.md</a></td>
+<td>CSV → embed → rank agent brief</td>
+</tr>
+<tr>
+<td><a href="docs/CONVEX_CLI_LOGIN.md">docs/CONVEX_CLI_LOGIN.md</a></td>
+<td>Convex CLI login/logout and self-hosted env notes</td>
+</tr>
+<tr>
+<td><a href="docs/CONVEX_LOCAL_SETUP.md">docs/CONVEX_LOCAL_SETUP.md</a></td>
+<td>Self-hosted Convex (Docker) quick start and architecture</td>
+</tr>
+<tr>
+<td><a href="docs/AUTH_AND_ADMIN_SETUP.md">docs/AUTH_AND_ADMIN_SETUP.md</a></td>
+<td>Clerk + Convex auth and first-admin setup</td>
+</tr>
+<tr>
+<td><a href="docs/INTEGRATION.md">docs/INTEGRATION.md</a></td>
+<td>Orchestrator API and hunt workflow integration</td>
+</tr>
+<tr>
+<td><a href="AGENTS.md">AGENTS.md</a></td>
+<td>Notes for AI agents (Opportunities + Convex self-hosted vs cloud)</td>
+</tr>
+</tbody></table>
+
+  </article>
+</body>
+</html>

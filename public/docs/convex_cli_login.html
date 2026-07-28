@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Convex CLI: login, logout, and self-hosted · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/CONVEX_CLI_LOGIN.md</p>
+    <h1>Convex CLI: login, logout, and self-hosted</h1>
+<h2>Refreshing Convex credentials / switching accounts</h2>
+<p>If you have multiple Convex accounts and need the CLI to use a different account for this project:</p>
+<ol>
+<li><p><strong>Log out</strong> (clears the cached account):</p>
+<pre><code class="language-bash">npx convex logout
+</code></pre>
+</li>
+<li><p><strong>Log in again</strong> (browser will open; choose the account you need):</p>
+<pre><code class="language-bash">npx convex login
+</code></pre>
+<p>To force a fresh login and pick a different account:</p>
+<pre><code class="language-bash">npx convex login --force
+</code></pre>
+</li>
+</ol>
+<p>Credentials are stored in <code>~/.convex/config.json</code>. Changing only <code>.env.local</code> does <strong>not</strong> switch which Convex account the CLI uses—you need to run <code>logout</code> then <code>login</code> (or <code>login --force</code>).</p>
+<hr>
+<h2>Self-hosted setup</h2>
+<p>This project can use <strong>Convex self-hosted</strong> (Docker backend). In that case:</p>
+<ul>
+<li>Set <code>CONVEX_SELF_HOSTED_URL</code> and <code>CONVEX_SELF_HOSTED_ADMIN_KEY</code> in your environment (e.g. in <code>.env.local</code>).</li>
+<li>Do <strong>not</strong> set <code>CONVEX_DEPLOYMENT</code>—the CLI will refuse to run if both self-hosted vars and <code>CONVEX_DEPLOYMENT</code> are set.</li>
+</ul>
+<p>See <a href="CONVEX_LOCAL_SETUP.md">CONVEX_LOCAL_SETUP.md</a> for full Docker setup and <a href="../AGENTS.md">AGENTS.md</a> for the self-hosted vs cloud conflict and codegen notes.</p>
+
+  </article>
+</body>
+</html>

@@ -30,6 +30,14 @@ export function AppFooter() {
             Why Lynx
           </Link>
           <span className="hidden sm:inline text-accent/50" aria-hidden>·</span>
+          <Link
+            to="/docs"
+            onClick={() => window.scrollTo(0, 0)}
+            className="text-xs font-semibold uppercase tracking-widest text-accent/90 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-sm"
+          >
+            Docs
+          </Link>
+          <span className="hidden sm:inline text-accent/50" aria-hidden>·</span>
           <span className="text-xs font-semibold uppercase tracking-widest text-accent/90">
             Built by Justin Martinez at{" "}
             <a

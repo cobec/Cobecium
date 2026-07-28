@@ -1,0 +1,25 @@
+<h1>Feedback feature – seed data</h1>
+<p>To load dummy feedback data so you can review list/detail, voting, comments, and filters:</p>
+<h2>Run the seed</h2>
+<p><strong>From the Convex dashboard</strong> (e.g. <a href="http://localhost:6791">http://localhost:6791</a> for local self-hosted):</p>
+<ol>
+<li>Open <strong>Functions</strong>.</li>
+<li>Select the <strong>seedFeedback</strong> module.</li>
+<li>Choose the <strong>run</strong> function (internal mutation).</li>
+<li>Click <strong>Run</strong> (no arguments).</li>
+<li>Check the result: <code>seeded: true</code> and <code>feedbackCount: 8</code> means 8 feedback items were inserted.</li>
+</ol>
+<p><strong>From the CLI</strong> (with Convex configured for your environment):</p>
+<pre><code class="language-bash">npx convex run seedFeedback:run
+</code></pre>
+<p>If feedback data already exists, the seed returns <code>seeded: false</code> and does not insert anything (to avoid duplicates).</p>
+<h2>What gets seeded</h2>
+<ul>
+<li><strong>8 feedback items</strong>: mix of feature requests and bug reports, with varied statuses (Gathering Interest, Planned, In Progress, Complete, Closed), vote scores, and comment counts.</li>
+<li><strong>3 seed users</strong> (Alice Chen, Bob Martinez, Carol Williams) as authors and voters.</li>
+<li><strong>Votes</strong> on feedback items so list/detail show non-zero scores.</li>
+<li><strong>Importance ratings</strong> on the first 5 items (for the “How important is this to you?” poll).</li>
+<li><strong>Comments</strong> on several items, including <strong>replies</strong> (threaded), with like/dislike counts.</li>
+<li><strong>Subscriptions</strong> for two items so the “Get notified” toggle shows subscribed state for seed users.</li>
+</ul>
+<p>After seeding, open <strong>Feedback</strong> in the app to see the list, sort (Trending / Top / New), filter by board/status, open a detail page, and try voting, importance, and comments.</p>

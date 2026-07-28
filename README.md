@@ -7,10 +7,11 @@
 **Who it’s for:**
 
 - **Researchers and BD teams** who need fast access to state/city procurement links by location.
+- **Capture / BD teams** ranking **federal SAM.gov opportunities** inside Lynx at **`/opps`** (CSV → SamRank embed/rank → Yes/No learning).
 - **Admins** who maintain the link catalog, import bulk data, manage system prompts for AI-assisted “hunts,” and view analytics.
 - **Organizations** that pair Lynx with an external **AI Orchestrator** to run “hunts”: workflow runs (e.g. lead generation) scoped to a state, using configurable system prompts and optional RAG (e.g. AnythingLLM) or web search.
 
-The main experience is a **procurement links grid** (by state/city) with search; admins get **System prompts**, **Analytics**, and **Admin** (user/role management). Right-clicking a state card opens **Start Hunt** to launch an Orchestrator workflow with a state-specific prompt.
+The main experience is a **procurement links grid** (by state/city) with search; **Opportunities** ranks federal notices from `samoutput/` CSVs via SamRank; admins get **System prompts**, **Analytics**, and **Admin** (user/role management). Right-clicking a state card opens **Start Hunt** to launch an Orchestrator workflow with a state-specific prompt.
 
 ---
 
@@ -32,8 +33,8 @@ Convex provides the API layer and persistence (`procurementLinks`, `chatSystemPr
 
 - **App (Vite)** – SPA on port 5173; `@/` alias points at `src/`. Uses `ClerkProvider` and `ConvexProviderWithClerk`; `useStoreUserEffect` syncs Clerk identity into Convex `lynxUsers`.
 - **Convex** – Backend can run in Convex Cloud or **self-hosted** (Docker: backend + dashboard + app container that runs `convex dev` + Vite). See `docs/CONVEX_LOCAL_SETUP.md`.
-- **Routes** – `/` = Procurement grid; `/system-prompts`, `/analytics`, `/admin` are admin-only (guarded by `AdminOnlyRoute` and Convex `requireAdmin`). Style demos live at `/1`–`/10`.
-- **Data flow** – Grid reads `api.procurementLinks.list` and `api.systemPrompts.list`; admins can import JSON, add/edit links, and edit prompts. “Start Hunt” uses `api.orchestrator.createWorkflow` (and related actions) and opens `HuntChatModal` to poll workflow status.
+- **Routes** – `/` / `/app` = Procurement grid; `/opps` (+ `/approved`, `/status`) = federal Opportunities feed (Clerk + SamRank); `/system-prompts`, `/analytics`, `/admin` are admin-only (guarded by `AdminOnlyRoute` and Convex `requireAdmin`). Style demos live at `/1`–`/10`.
+- **Data flow** – Grid reads `api.procurementLinks.list` and `api.systemPrompts.list`; Opportunities reads Convex `api.samRank.*` actions that proxy SamRank `:5190`. Admins can import JSON, add/edit links, and edit prompts. “Start Hunt” uses `api.orchestrator.createWorkflow` (and related actions) and opens `HuntChatModal` to poll workflow status.
 - **Orchestrator docs sync** – Convex can fetch and hash the Orchestrator API docs; the header shows an indicator when stored docs have changed. See `convex/orchestratorDocsSync.ts` and env vars in `docs/CONVEX_LOCAL_SETUP.md`.
 
 ---
@@ -53,8 +54,10 @@ Convex provides the API layer and persistence (`procurementLinks`, `chatSystemPr
 
 | Doc | Purpose |
 |-----|--------|
+| [docs/OPPORTUNITIES_INTEGRATION.md](docs/OPPORTUNITIES_INTEGRATION.md) | Lynx ↔ SamRank Opportunities integration (routes, env, enrich) |
+| [docs/SAM_OPPORTUNITY_RANKING_AGENT.md](docs/SAM_OPPORTUNITY_RANKING_AGENT.md) | CSV → embed → rank agent brief |
 | [docs/CONVEX_CLI_LOGIN.md](docs/CONVEX_CLI_LOGIN.md) | Convex CLI login/logout and self-hosted env notes |
 | [docs/CONVEX_LOCAL_SETUP.md](docs/CONVEX_LOCAL_SETUP.md) | Self-hosted Convex (Docker) quick start and architecture |
 | [docs/AUTH_AND_ADMIN_SETUP.md](docs/AUTH_AND_ADMIN_SETUP.md) | Clerk + Convex auth and first-admin setup |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | Orchestrator API and hunt workflow integration |
-| [AGENTS.md](AGENTS.md) | Notes for AI agents (Convex self-hosted vs cloud, codegen) |
+| [AGENTS.md](AGENTS.md) | Notes for AI agents (Opportunities + Convex self-hosted vs cloud) |

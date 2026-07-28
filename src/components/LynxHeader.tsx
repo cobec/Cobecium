@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 const ORCHESTRATOR_DOCS_URL =
   import.meta.env.VITE_ORCHESTRATOR_DOCS_URL || "http://cobec-spark:5180/api/docs";
 
-type ActivePage = "procurement" | "system-prompts" | "analytics" | "admin" | "feedback" | "feedbackDetail";
+type ActivePage = "procurement" | "system-prompts" | "analytics" | "admin" | "feedback" | "feedbackDetail" | "opportunities";
 
 interface LynxHeaderProps {
   subtitle: string;
@@ -89,6 +89,14 @@ export function LynxHeader({ subtitle, activePage }: LynxHeaderProps) {
               className={navButtonClasses(activePage === "procurement")}
             >
               Procurement links
+            </Button>
+          </Link>
+          <Link to="/opps">
+            <Button
+              variant="outline"
+              className={navButtonClasses(activePage === "opportunities")}
+            >
+              Opportunities
             </Button>
           </Link>
           <Link to="/feedback">

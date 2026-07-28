@@ -1,0 +1,80 @@
+<h1>Notes for AI agents</h1>
+<p>This file captures project-specific gotchas and learnings so agents (and humans) can avoid repeating the same failures.</p>
+<hr>
+<h2>SAM opportunity ranking (CSV → embed → rank → Lynx <code>/opps</code>)</h2>
+<p>Manual Databank CSV drops live in <code>samoutput/</code>. Ranking engine: sibling <strong>SamRank</strong> (<code>.NET</code>, <code>:5190</code>). Lynx product UI: <strong><code>/opps</code></strong> (Clerk-authenticated), via Convex actions in <code>convex/samRank.ts</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Doc</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><a href="docs/OPPORTUNITIES_INTEGRATION.md"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a></strong></td>
+<td><strong>As-built Lynx ↔ SamRank wiring</strong> (routes, env, enrich APIs, card UX)</td>
+</tr>
+<tr>
+<td><a href="docs/SAM_OPPORTUNITY_RANKING_AGENT.md"><code>docs/SAM_OPPORTUNITY_RANKING_AGENT.md</code></a></td>
+<td>Ranking/ingest agent brief (also <code>/docs/...</code> after <code>bun run docs:html</code>)</td>
+</tr>
+</tbody></table>
+<p><strong>Split of responsibility</strong></p>
+<ul>
+<li><strong>SamRank:</strong> CSV ingest, embeddings (LM Studio), team ranking overlay, preference learning, HTTP <code>/api/*</code>, Firecrawl link/description enrichment</li>
+<li><strong>Cobecium/Lynx:</strong> Clerk auth, <code>/opps</code> feed · approved · status UI, <code>SAMRANK_BASE_URL</code> Convex env</li>
+</ul>
+<p>Set <code>SAMRANK_BASE_URL=http://cobec-spark:5190</code> (and optional <code>SAMRANK_DEFAULT_TEAM_ID=cobec</code>) in Convex env before using Opportunities.</p>
+<p>Corpus membership comes from CSVs. Public SAM.gov detail URLs/full descriptions are optional Firecrawl enrich jobs on SamRank — do not restart SamRank mid-enrich unless necessary.</p>
+<p><strong>POC enrich outcome (~1969 notices):</strong> ~1932 detail URLs; <strong>37</strong> link fails (<code>no detail link in search results</code>, mostly inactive/legacy); description job ~1722 updated / <strong>209</strong> extract fails. Details and reconcile commands: <a href="docs/OPPORTUNITIES_INTEGRATION.md#poc-enrich-results-corpus-1969-notices-jul-2026"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a>. Failure log: <code>SamRank/Data/enrichment-failures.jsonl</code>.</p>
+<hr>
+<h2>Convex CLI: self-hosted vs cloud env conflict</h2>
+<p>This repo uses <strong>Convex self-hosted</strong> (Docker backend). The Convex CLI enforces that you are either in “cloud” mode or “self-hosted” mode, not both.</p>
+<h3>What goes wrong</h3>
+<p>When you run <strong>any</strong> Convex CLI command from the project root—e.g.:</p>
+<ul>
+<li><code>npx convex dev</code></li>
+<li><code>npx convex codegen</code></li>
+<li><code>npx convex deploy</code></li>
+</ul>
+<p>—the CLI can <strong>exit with an error</strong> and refuse to run if <strong>all</strong> of these are true:</p>
+<ol>
+<li><strong>Self-hosted</strong> env vars are set: <code>CONVEX_SELF_HOSTED_URL</code> and <code>CONVEX_SELF_HOSTED_ADMIN_KEY</code> (often via <code>.env</code> or <code>.env.local</code>).</li>
+<li><strong>Cloud</strong> env var is also set: <code>CONVEX_DEPLOYMENT</code>.</li>
+</ol>
+<h3>Exact error you may see</h3>
+<pre><code class="language-text">✖ CONVEX_DEPLOYMENT must not be set when CONVEX_SELF_HOSTED_URL and CONVEX_SELF_HOSTED_ADMIN_KEY are set
+</code></pre>
+<p>So the CLI is saying: “You’ve configured self-hosted; do not set <code>CONVEX_DEPLOYMENT</code>.”</p>
+<h3>What to do</h3>
+<ul>
+<li><strong>When working in this repo (self-hosted):</strong> Do <strong>not</strong> set <code>CONVEX_DEPLOYMENT</code> in <code>.env</code> or <code>.env.local</code>. The project’s <code>.env.example</code> and <code>docs/CONVEX_LOCAL_SETUP.md</code> already state this. If the user’s env has <code>CONVEX_DEPLOYMENT</code> set, they need to remove or comment it out and re-run the Convex command (or run it in a shell where <code>CONVEX_DEPLOYMENT</code> is unset).</li>
+<li><strong>When you need to run <code>npx convex codegen</code> (e.g. after adding a new <code>convex/*.ts</code> module):</strong><ul>
+<li>If the command fails with the error above, <strong>do not assume</strong> the new module was never added to the generated API. Check <code>convex/_generated/api.d.ts</code>: the new module may already be listed from a previous successful run (e.g. in Docker or on another machine).</li>
+<li>Do <strong>not</strong> edit <code>convex/_generated/*</code> by hand. Those files are generated; they will be updated the next time <code>npx convex codegen</code> or <code>npx convex dev</code> runs successfully (e.g. in the app container where env is correct, or after the user fixes their env).</li>
+</ul>
+</li>
+<li><strong>Do not</strong> suggest setting <code>CONVEX_DEPLOYMENT</code> “so codegen works” when the project is set up for self-hosted; that would break the intended setup.</li>
+</ul>
+<h3>Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Self-hosted (this repo’s setup)</td>
+<td>Never set <code>CONVEX_DEPLOYMENT</code>. Remove it if the CLI errors.</td>
+</tr>
+<tr>
+<td>Running Convex CLI locally</td>
+<td>Ensure env doesn’t have both self-hosted vars and <code>CONVEX_DEPLOYMENT</code>.</td>
+</tr>
+<tr>
+<td>Codegen failed with above error</td>
+<td>Check <code>_generated/api.d.ts</code>; new modules may already be there.</td>
+</tr>
+</tbody></table>
+<p>See also: <code>docs/CONVEX_LOCAL_SETUP.md</code>, <code>.env.example</code> (comment about not setting <code>CONVEX_DEPLOYMENT</code> when using self-hosted).</p>

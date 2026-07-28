@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auth and admin setup (Clerk + Convex) · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/AUTH_AND_ADMIN_SETUP.md</p>
+    <h1>Auth and admin setup (Clerk + Convex)</h1>
+<p>Lynx uses <strong>Clerk</strong> for sign-in and <strong>Convex</strong> for identity and roles. The Convex backend validates Clerk JWTs and stores users in the <code>lynxUsers</code> table with a <code>role</code> (<code>&quot;admin&quot;</code> or <code>&quot;user&quot;</code>).</p>
+<h2>Environment variables</h2>
+<h3>Frontend (Vite / <code>.env</code> / <code>.env.local</code>)</h3>
+<ul>
+<li><strong><code>VITE_CLERK_PUBLISHABLE_KEY</code></strong> – From <a href="https://dashboard.clerk.com/~/api-keys">Clerk Dashboard → API Keys</a> (React / Publishable key).</li>
+</ul>
+<h3>Convex (Dashboard only for Convex Cloud)</h3>
+<p>The Convex <strong>backend</strong> does not read <code>.env</code> or <code>.env.local</code>. It only uses variables set in the <strong>Convex Dashboard</strong> for the deployment you’re pushing to. If you see “Environment variable CLERK_JWT_ISSUER_DOMAIN is used in auth config file but its value was not set”:</p>
+<ol>
+<li>Open your deployment’s <strong>Settings → Environment variables</strong> in the <a href="https://dashboard.convex.dev">Convex Dashboard</a>.</li>
+<li>Ensure you’re on the <strong>same deployment</strong> (and branch) that <code>convex dev</code> uses (e.g. <strong>Development</strong> for your dev deployment). Development and Production often have separate env var lists.</li>
+<li>Add <code>CLERK_JWT_ISSUER_DOMAIN</code> with your Clerk Frontend API URL (see format below), save, then run <code>npx convex dev</code> again.</li>
+</ol>
+<p>Set these in the <strong>Convex dashboard</strong> (Settings → Environment Variables):</p>
+<ul>
+<li><p><strong><code>CLERK_JWT_ISSUER_DOMAIN</code></strong> – Clerk Frontend API URL (JWT issuer).</p>
+<ul>
+<li><strong>Development:</strong> <code>https://&lt;your-tenant&gt;.clerk.accounts.dev</code> (replace <code>&lt;your-tenant&gt;</code> with the value from Clerk Dashboard).</li>
+<li><strong>Production:</strong> <code>https://clerk.&lt;your-domain&gt;.com</code> if you use a custom domain.</li>
+<li>You can copy this from the Clerk Dashboard (API Keys or Configure → Paths).</li>
+</ul>
+</li>
+<li><p><strong><code>LYNX_FIRST_ADMIN_CLERK_ID</code></strong> <em>(optional)</em> – Clerk user ID of the first admin. When the app has <strong>no</strong> admin yet and the signing-in user’s ID matches this value, <code>ensureMe</code> will set their role to <code>&quot;admin&quot;</code>.  </p>
+<ul>
+<li><strong>How to get the Clerk user ID:</strong> In <a href="https://dashboard.clerk.com/~/users">Clerk Dashboard → Users</a>, open a user and copy the <strong>User ID</strong> (e.g. <code>user_2abc...</code>). Or temporarily log <code>identity.subject</code> in the app (e.g. in a debug component that calls <code>useUser()</code> from Clerk and displays the id).</li>
+</ul>
+</li>
+</ul>
+<p>After adding or changing these, run <code>npx convex dev</code> or <code>npx convex deploy</code> so the Convex backend picks them up.</p>
+<h2>First admin</h2>
+<ol>
+<li>Set <code>LYNX_FIRST_ADMIN_CLERK_ID</code> in Convex to your Clerk user ID.</li>
+<li>Sign in with that Clerk account and open the app so <code>ensureMe</code> runs (it runs automatically when authenticated).</li>
+<li>That user will get <code>role: &quot;admin&quot;</code> and can open <strong>Admin</strong> and <strong>Analytics</strong>, and can elevate/demote other users.</li>
+</ol>
+<p>If you don’t set <code>LYNX_FIRST_ADMIN_CLERK_ID</code>, you can still create the first admin by inserting or updating a row in the <code>lynxUsers</code> table in the Convex dashboard (set <code>role</code> to <code>&quot;admin&quot;</code> for the desired <code>clerkUserId</code>).</p>
+<h2>Admin-only features</h2>
+<ul>
+<li><strong>Routes:</strong> <code>/admin</code> and <code>/analytics</code> are wrapped in <code>AdminOnlyRoute</code>; non-admins are redirected to <code>/</code>.</li>
+<li><strong>Nav:</strong> The <strong>Admin</strong> and <strong>Analytics</strong> links in the header are shown only when <code>getMyRole</code> returns <code>&quot;admin&quot;</code>.</li>
+<li><strong>Backend:</strong> <code>getHuntCountsByState</code> (analytics) and <code>listForAdmin</code> / <code>setRole</code> require the caller to be an admin; otherwise they throw.</li>
+</ul>
+
+  </article>
+</body>
+</html>

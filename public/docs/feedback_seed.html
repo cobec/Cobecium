@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feedback feature – seed data · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/FEEDBACK_SEED.md</p>
+    <h1>Feedback feature – seed data</h1>
+<p>To load dummy feedback data so you can review list/detail, voting, comments, and filters:</p>
+<h2>Run the seed</h2>
+<p><strong>From the Convex dashboard</strong> (e.g. <a href="http://localhost:6791">http://localhost:6791</a> for local self-hosted):</p>
+<ol>
+<li>Open <strong>Functions</strong>.</li>
+<li>Select the <strong>seedFeedback</strong> module.</li>
+<li>Choose the <strong>run</strong> function (internal mutation).</li>
+<li>Click <strong>Run</strong> (no arguments).</li>
+<li>Check the result: <code>seeded: true</code> and <code>feedbackCount: 8</code> means 8 feedback items were inserted.</li>
+</ol>
+<p><strong>From the CLI</strong> (with Convex configured for your environment):</p>
+<pre><code class="language-bash">npx convex run seedFeedback:run
+</code></pre>
+<p>If feedback data already exists, the seed returns <code>seeded: false</code> and does not insert anything (to avoid duplicates).</p>
+<h2>What gets seeded</h2>
+<ul>
+<li><strong>8 feedback items</strong>: mix of feature requests and bug reports, with varied statuses (Gathering Interest, Planned, In Progress, Complete, Closed), vote scores, and comment counts.</li>
+<li><strong>3 seed users</strong> (Alice Chen, Bob Martinez, Carol Williams) as authors and voters.</li>
+<li><strong>Votes</strong> on feedback items so list/detail show non-zero scores.</li>
+<li><strong>Importance ratings</strong> on the first 5 items (for the “How important is this to you?” poll).</li>
+<li><strong>Comments</strong> on several items, including <strong>replies</strong> (threaded), with like/dislike counts.</li>
+<li><strong>Subscriptions</strong> for two items so the “Get notified” toggle shows subscribed state for seed users.</li>
+</ul>
+<p>After seeding, open <strong>Feedback</strong> in the app to see the list, sort (Trending / Top / New), filter by board/status, open a detail page, and try voting, importance, and comments.</p>
+
+  </article>
+</body>
+</html>

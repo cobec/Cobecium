@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Convex local setup (self-hosted in Docker) · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/CONVEX_LOCAL_SETUP.md</p>
+    <h1>Convex local setup (self-hosted in Docker)</h1>
+<p>This project uses <strong>separate Docker services</strong> for the Convex backend, dashboard, and app so the app container stays small and startup is reliable (no hang). Same pattern as other services on your Spark (e.g. LM Studio, AnythingLLM).</p>
+<hr>
+<h2>Quick start</h2>
+<ol start="0">
+<li><p><strong>Create <code>.env.local</code></strong> (required for the app service)</p>
+<pre><code class="language-bash">cp .env.example .env.local
+</code></pre>
+<p>Leave <code>CONVEX_SELF_HOSTED_ADMIN_KEY</code> empty for now; you’ll set it after step 2.<br><strong>Do not set</strong> <code>CONVEX_DEPLOYMENT</code> when using self-hosted (the CLI will refuse to push and the dashboard will stay empty). The app container mounts <code>.env.local</code> read-only so <code>convex dev</code> cannot re-inject <code>CONVEX_DEPLOYMENT</code> into it.</p>
+</li>
+<li><p><strong>Start everything</strong></p>
+<pre><code class="language-bash">docker compose up --build
+</code></pre>
+</li>
+<li><p><strong>First time only: generate Convex admin key</strong></p>
+<pre><code class="language-bash">docker compose exec backend ./generate_admin_key.sh
+</code></pre>
+<p>Copy the printed key into <code>.env.local</code> as <code>CONVEX_SELF_HOSTED_ADMIN_KEY=...</code>.</p>
+</li>
+<li><p><strong>Restart so the app can push Convex functions</strong></p>
+<pre><code class="language-bash">docker compose --env-file .env.local up
+</code></pre>
+</li>
+<li><p><strong>URLs</strong></p>
+<ul>
+<li><strong>App:</strong> <a href="http://localhost:5173">http://localhost:5173</a>  </li>
+<li><strong>Convex dashboard:</strong> <a href="http://localhost:6791">http://localhost:6791</a> (enter the admin key when prompted)</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>Access from Windows over Tailscale</h2>
+<p>Docker publishes ports on all interfaces (0.0.0.0), so from your Windows machine on the same Tailscale network you can use your Spark’s hostname (e.g. <code>cobec-spark</code>).</p>
+<ol>
+<li><p><strong>Set Tailscale-friendly URLs</strong> in <code>.env.local</code> (replace <code>cobec-spark</code> with your Spark’s Tailscale name or IP):</p>
+<pre><code class="language-bash">CONVEX_SELF_HOSTED_ADMIN_KEY=&lt;from generate_admin_key.sh&gt;
+VITE_CONVEX_URL=http://cobec-spark:3210
+CONVEX_CLOUD_ORIGIN=http://cobec-spark:3210
+CONVEX_SITE_ORIGIN=http://cobec-spark:3211
+NEXT_PUBLIC_DEPLOYMENT_URL=http://cobec-spark:3210
+</code></pre>
+<p>Use <code>VITE_CONVEX_URL=http://cobec-spark:3210</code> (not <code>127.0.0.1</code>) so the <strong>browser</strong> can reach Convex when you open the app at <code>http://cobec-spark:5173</code> from another device.</p>
+</li>
+<li><p><strong>Start with env</strong></p>
+<pre><code class="language-bash">docker compose --env-file .env.local up --build
+</code></pre>
+</li>
+<li><p><strong>From Windows browser</strong></p>
+<ul>
+<li><strong>App:</strong> <a href="http://cobec-spark:5173">http://cobec-spark:5173</a>  </li>
+<li><strong>Convex dashboard:</strong> <a href="http://cobec-spark:6791">http://cobec-spark:6791</a></li>
+</ul>
+</li>
+</ol>
+<p>Same idea as reaching LM Studio or AnythingLLM over Tailscale: one hostname, different ports.</p>
+<hr>
+<h2>Architecture</h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Image / build</th>
+<th>Ports</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>backend</code></td>
+<td>convex-backend</td>
+<td>3210, 3211</td>
+<td>Convex API + data (SQLite in volume)</td>
+</tr>
+<tr>
+<td><code>dashboard</code></td>
+<td>convex-dashboard</td>
+<td>6791</td>
+<td>Dashboard UI (browser talks to backend via <code>NEXT_PUBLIC_DEPLOYMENT_URL</code>)</td>
+</tr>
+<tr>
+<td><code>app</code></td>
+<td>This repo</td>
+<td>5173</td>
+<td>Vite dev server + <code>convex dev</code> (push only)</td>
+</tr>
+</tbody></table>
+<p>The app container <strong>does not</strong> run the Convex backend binary; it only runs <code>convex dev</code> (to push functions) and Vite. That avoids the previous hang and keeps the app container light.</p>
+<hr>
+<h2>Data and upgrades</h2>
+<ul>
+<li><strong>Convex data</strong> is in the <code>convex_data</code> Docker volume. To wipe and start fresh: <code>docker compose down -v</code> (then generate a new admin key and reconfigure <code>.env.local</code>).</li>
+<li><strong>Backend/dashboard images</strong> use <code>:latest</code>. To pin versions, set the image tags in <code>docker-compose.yml</code> to a specific digest or tag.</li>
+</ul>
+<hr>
+<h2>If something fails</h2>
+<ul>
+<li><strong>App exits or hangs:</strong> Check that <code>backend</code> is healthy: <code>docker compose ps</code>. The app waits for backend port 3210 before starting Convex dev and Vite.</li>
+<li><strong>Dashboard shows “can’t connect”:</strong> Ensure <code>NEXT_PUBLIC_DEPLOYMENT_URL</code> (and from Windows, that it uses the Tailscale hostname) matches how the browser reaches the backend (e.g. <code>http://cobec-spark:3210</code>).</li>
+<li><strong>Vite app can’t reach Convex:</strong> Set <code>VITE_CONVEX_URL</code> to the URL the <strong>browser</strong> uses to reach the backend (e.g. <code>http://cobec-spark:3210</code> when opening the app at <code>http://cobec-spark:5173</code>). Using <code>127.0.0.1:3210</code> only works when the browser is on the same machine as the backend.</li>
+<li><strong>Dashboard shows no tables/functions:</strong> Ensure <code>CONVEX_DEPLOYMENT</code> is not set in <code>.env.local</code> when using self-hosted. If you see &quot;CONVEX_DEPLOYMENT must not be set when ...&quot;, remove or comment out the <code>CONVEX_DEPLOYMENT</code> line, then restart the stack so <code>convex dev</code> can push.</li>
+</ul>
+<hr>
+<h2>Orchestrator docs sync</h2>
+<p>The app can sync and detect changes to the orchestrator API docs (e.g. <code>http://cobec-spark:5180/api/docs</code>). The Convex backend must be able to reach that URL (e.g. same Docker network).</p>
+<ul>
+<li><strong>Convex env</strong> (backend): Set <code>ORCHESTRATOR_DOCS_URL</code> in the Convex dashboard or via <code>npx convex env set</code> (e.g. <code>http://cobec-spark:5180/api/docs</code>). Used by <code>convex/orchestratorDocsSync</code> to fetch and hash the docs.</li>
+<li><strong>Optional Vite env</strong>: Set <code>VITE_ORCHESTRATOR_DOCS_URL</code> in <code>.env.local</code> if the docs link in the header should use a different URL than the default <code>http://cobec-spark:5180/api/docs</code>.</li>
+<li><strong>CLI</strong>: Run <code>npx convex run orchestratorDocsSync:fetchAndStoreOrchestratorDocs</code> anytime to pull and store the latest docs (from a shell where Convex env is configured).</li>
+<li>A cron job runs the sync every 6 hours. The header shows a “docs updated” indicator when the stored docs have changed since the user last clicked it.</li>
+</ul>
+
+  </article>
+</body>
+</html>

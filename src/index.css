@@ -89,3 +89,59 @@
     animation: fade-in 0.2s ease-out, slide-in-from-bottom-4 0.25s ease-out;
   }
 }
+
+/* In-app HTML docs (converted from Markdown) */
+@layer components {
+  .lynx-doc-prose {
+    @apply text-sm sm:text-base leading-relaxed text-foreground;
+  }
+  .lynx-doc-prose h1 {
+    @apply text-2xl font-extrabold mt-8 mb-3 tracking-tight;
+  }
+  .lynx-doc-prose h2 {
+    @apply text-lg font-bold mt-8 mb-3 text-primary border-b border-border pb-1;
+  }
+  .lynx-doc-prose h3 {
+    @apply text-base font-bold mt-6 mb-2 text-accent;
+  }
+  .lynx-doc-prose h4 {
+    @apply text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-muted-foreground;
+  }
+  .lynx-doc-prose p {
+    @apply mb-4;
+  }
+  .lynx-doc-prose ul {
+    @apply mb-4 list-disc pl-5 space-y-1;
+  }
+  .lynx-doc-prose ol {
+    @apply mb-4 list-decimal pl-5 space-y-1;
+  }
+  .lynx-doc-prose a {
+    @apply text-accent underline underline-offset-2 hover:text-primary;
+  }
+  .lynx-doc-prose code {
+    @apply font-mono text-[0.9em] bg-card px-1 py-0.5 rounded-sm;
+  }
+  .lynx-doc-prose pre {
+    @apply mb-4 overflow-x-auto border border-border bg-card p-4 text-xs sm:text-sm;
+  }
+  .lynx-doc-prose pre code {
+    @apply bg-transparent p-0;
+  }
+  .lynx-doc-prose table {
+    @apply mb-4 w-full border-collapse text-sm;
+  }
+  .lynx-doc-prose th,
+  .lynx-doc-prose td {
+    @apply border border-border px-3 py-2 text-left align-top;
+  }
+  .lynx-doc-prose th {
+    @apply bg-card text-primary font-semibold;
+  }
+  .lynx-doc-prose blockquote {
+    @apply mb-4 border-l-4 border-accent bg-card/60 pl-4 py-2 text-muted-foreground;
+  }
+  .lynx-doc-prose hr {
+    @apply my-8 border-border;
+  }
+}

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sending Prompts to the AI Orchestrator · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/INTEGRATION.md</p>
+    <h1>Sending Prompts to the AI Orchestrator</h1>
+<p>This document describes how to integrate your application with the Orchestrator: submit user prompts and (optionally) poll for the generated response.</p>
+<hr>
+<h2>What the Orchestrator Does</h2>
+<ol>
+<li><strong>Accepts</strong> a prompt, optional workspace identifier, and optional agent capabilities (web search, URL scraping, browser workflow).</li>
+<li><strong>Validates and parses</strong> the prompt via a reasoning model (Phi-4 mini via LM Studio), producing a workflow type, steps, and required tools (e.g. <code>rag</code>, <code>web_search</code>, <code>web_scrape</code>, <code>browser</code>). Rejected prompts are failed with a reason.</li>
+<li><strong>Retrieves context</strong> from a RAG/knowledge base (AnythingLLM workspace). Optionally creates a dynamic AnythingLLM workspace per query when requested.</li>
+<li><strong>Enriches context</strong> with Firecrawl when requested: web search (<a href="https://docs.firecrawl.dev/features/search">Firecrawl Search</a>), scraping of known URLs (<a href="https://docs.firecrawl.dev/features/scrape">Firecrawl Scrape</a>), and multistep web agentic workflows (<a href="https://docs.firecrawl.dev/features/browser">Firecrawl Browser Sandbox</a>).</li>
+<li><strong>Generates</strong> a response using that context and your system prompt.</li>
+<li><strong>Stores</strong> status, logs, parsed workflow fields, and the final result so you can poll or display them.</li>
+</ol>
+<p>You send one HTTP request to create a “workflow”; a worker processes it asynchronously. Use the returned workflow ID to poll for status and result.</p>
+<hr>
+<h2>Prerequisites</h2>
+<ul>
+<li><strong>Base URL</strong> of the Convex backend (e.g. <code>https://your-orchestrator.example.com</code> or <code>http://192.168.1.10:3220</code>). When using the Docker stack, the API is at <code>http://localhost:3220</code> (or use the host’s hostname/IP and port 3220 when accessing remotely). Get this from the team that runs the Orchestrator.</li>
+<li><strong>Authentication</strong> (if enabled): an admin key may be required for self-hosted Convex. You will receive it separately.</li>
+</ul>
+<hr>
+<h2>Create a Workflow (Submit a Prompt)</h2>
+<p><strong>Endpoint:</strong> <code>POST &lt;BASE_URL&gt;/api/mutation</code><br><strong>Headers:</strong> <code>Content-Type: application/json</code><br>If auth is required: <code>Authorization: Convex &lt;ADMIN_KEY&gt;</code></p>
+<p><strong>Request body:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>path</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Must be <code>&quot;workflows:create&quot;</code>.</td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td>object</td>
+<td>Yes</td>
+<td>See below.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Use <code>&quot;json&quot;</code>.</td>
+</tr>
+</tbody></table>
+<p><strong><code>args</code>:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>prompt</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The user’s question or instruction (sent to RAG and to the final LLM).</td>
+</tr>
+<tr>
+<td><code>systemPrompt</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>System/validation instructions (e.g. safety rules, tone). Used for validation and as system context for generation.</td>
+</tr>
+<tr>
+<td><code>workspaceSlug</code></td>
+<td>string</td>
+<td>No</td>
+<td>AnythingLLM workspace slug for RAG. If omitted, the Orchestrator uses its default workspace. Use this to route prompts to different knowledge bases.</td>
+</tr>
+<tr>
+<td><code>agentOptions</code></td>
+<td>object</td>
+<td>No</td>
+<td>Agent capabilities. <code>enableWebSearch</code>: boolean — use Firecrawl Search to add web results to context. <code>enableBrowserWorkflow</code>: boolean — use Firecrawl Browser Sandbox for multistep web workflows (navigation, forms). Requires the worker to have <code>FIRECRAWL_API</code> set (and <code>FIRECRAWL_API_KEY</code> when using Firecrawl cloud). Browser workflow is not supported on self-hosted Firecrawl.</td>
+</tr>
+<tr>
+<td><code>createDynamicWorkspace</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>When true, the worker creates a dedicated AnythingLLM workspace for this workflow and uses it for RAG.</td>
+</tr>
+<tr>
+<td><code>urlsToScrape</code></td>
+<td>string[]</td>
+<td>No</td>
+<td>URLs to scrape via Firecrawl Scrape; content is added to context. Requires the worker to have <code>FIRECRAWL_API</code> set (and <code>FIRECRAWL_API_KEY</code> when using Firecrawl cloud).</td>
+</tr>
+</tbody></table>
+<p><strong>Example request:</strong></p>
+<pre><code class="language-json">{
+  &quot;path&quot;: &quot;workflows:create&quot;,
+  &quot;args&quot;: {
+    &quot;prompt&quot;: &quot;What is our refund policy for orders over $100?&quot;,
+    &quot;systemPrompt&quot;: &quot;You are a helpful support assistant. Only answer from the provided context. Be concise.&quot;,
+    &quot;workspaceSlug&quot;: &quot;support-docs&quot;
+  },
+  &quot;format&quot;: &quot;json&quot;
+}
+</code></pre>
+<p><strong>Success response (HTTP 200):</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;success&quot;,
+  &quot;value&quot;: &quot;k97abc123xyz0&quot;,
+  &quot;logLines&quot;: []
+}
+</code></pre>
+<ul>
+<li><code>value</code> is the <strong>workflow ID</strong>. Store it to poll for status and result.</li>
+</ul>
+<p><strong>Error response:</strong> The JSON may include <code>&quot;status&quot;: &quot;error&quot;</code> and an <code>errorMessage</code> or similar field. Handle non-200 HTTP status codes as well.</p>
+<hr>
+<h2>Workflow Lifecycle and Statuses</h2>
+<p>After creation, the workflow moves through these statuses (you can infer them when polling):</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pending</code></td>
+<td>Queued; worker has not started.</td>
+</tr>
+<tr>
+<td><code>validating</code></td>
+<td>Prompt is being validated.</td>
+</tr>
+<tr>
+<td><code>retrieving_context</code></td>
+<td>Fetching context from the knowledge base.</td>
+</tr>
+<tr>
+<td><code>generating</code></td>
+<td>Generating the final response.</td>
+</tr>
+<tr>
+<td><code>completed</code></td>
+<td>Done. The result is in the workflow document.</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>Error. Check <code>error</code> and <code>logs</code> on the workflow.</td>
+</tr>
+<tr>
+<td><code>cancelled</code></td>
+<td>Workflow was cancelled.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Get Workflow Status and Result (Polling)</h2>
+<p><strong>Endpoint:</strong> <code>POST &lt;BASE_URL&gt;/api/query</code><br><strong>Headers:</strong> <code>Content-Type: application/json</code><br>Same auth as for mutations, if required.</p>
+<p><strong>Request body:</strong></p>
+<pre><code class="language-json">{
+  &quot;path&quot;: &quot;workflows:get&quot;,
+  &quot;args&quot;: { &quot;id&quot;: &quot;&lt;WORKFLOW_ID&gt;&quot; },
+  &quot;format&quot;: &quot;json&quot;
+}
+</code></pre>
+<p>Replace <code>&lt;WORKFLOW_ID&gt;</code> with the <code>value</code> returned from the create mutation.</p>
+<p><strong>Success response:</strong> A JSON object representing the workflow document, for example:</p>
+<pre><code class="language-json">{
+  &quot;prompt&quot;: &quot;What is our refund policy...&quot;,
+  &quot;systemPrompt&quot;: &quot;You are a helpful support assistant...&quot;,
+  &quot;workspaceSlug&quot;: &quot;support-docs&quot;,
+  &quot;status&quot;: &quot;completed&quot;,
+  &quot;result&quot;: &quot;For orders over $100, customers can request a full refund within 30 days...&quot;,
+  &quot;error&quot;: null,
+  &quot;logs&quot;: [&quot;Validating prompt...&quot;, &quot;Validation passed.&quot;, &quot;Querying knowledge base...&quot;, &quot;...&quot;],
+  &quot;workflowType&quot;: &quot;qa&quot;,
+  &quot;steps&quot;: [&quot;Retrieve context&quot;, &quot;Synthesize answer&quot;],
+  &quot;toolsRequired&quot;: [&quot;rag&quot;],
+  &quot;validationResult&quot;: { &quot;valid&quot;: true },
+  &quot;updatedAt&quot;: 1709123456789
+}
+</code></pre>
+<p><strong>Fields you care about:</strong></p>
+<ul>
+<li><strong><code>status</code></strong> — Use this to know when to stop polling (<code>completed</code> or <code>failed</code>).</li>
+<li><strong><code>result</code></strong> — Present when <code>status === &quot;completed&quot;</code>; this is the generated answer.</li>
+<li><strong><code>error</code></strong> — Present when <code>status === &quot;failed&quot;</code>; short error message.</li>
+<li><strong><code>logs</code></strong> — Optional; progress messages for debugging or UI.</li>
+<li><strong><code>workflowType</code></strong> — Set after validation (e.g. <code>qa</code>, <code>summarization</code>, <code>research</code>, <code>code_assist</code>, <code>data_gathering</code>, <code>general</code>). Omitted until validation completes.</li>
+<li><strong><code>steps</code></strong> — Ordered steps parsed by the validation agent. Omitted until validation completes.</li>
+<li><strong><code>toolsRequired</code></strong> — Tools the validation agent determined (e.g. <code>rag</code>, <code>web_search</code>, <code>web_scrape</code>, <code>browser</code>, <code>none</code>). Omitted until validation completes.</li>
+<li><strong><code>validationResult</code></strong> — When validation failed: <code>{ &quot;valid&quot;: false, &quot;rejectionReason&quot;: &quot;...&quot; }</code>. When valid: <code>{ &quot;valid&quot;: true }</code>.</li>
+</ul>
+<p><strong>Polling strategy:</strong> Poll <code>workflows:get</code> every 1–3 seconds until <code>status</code> is <code>completed</code>, <code>failed</code>, or <code>cancelled</code>, then read <code>result</code> or <code>error</code> as appropriate.</p>
+<p><strong>Optional — list workflows:</strong> <code>POST &lt;BASE_URL&gt;/api/query</code> with <code>path: &quot;workflows:listAll&quot;</code> and <code>args: {}</code> returns all workflows (for dashboards or debugging). Response is an array of workflow documents.</p>
+<p><strong>Optional — cancel or retry:</strong> To cancel a running workflow, <code>POST &lt;BASE_URL&gt;/api/mutation</code> with <code>path: &quot;workflows:cancel&quot;</code> and <code>args: { &quot;id&quot;: &quot;&lt;WORKFLOW_ID&gt;&quot; }</code>. To retry a failed workflow, use <code>path: &quot;workflows:retry&quot;</code> and the same <code>args</code>. Both return the updated workflow ID on success.</p>
+<hr>
+<h2>Example: Create and Poll (curl)</h2>
+<pre><code class="language-bash">BASE_URL=&quot;https://your-orchestrator.example.com&quot;
+
+# 1) Create workflow
+RESP=$(curl -sS -X POST &quot;$BASE_URL/api/mutation&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;path&quot;: &quot;workflows:create&quot;,
+    &quot;args&quot;: {
+      &quot;prompt&quot;: &quot;Summarize our return policy.&quot;,
+      &quot;systemPrompt&quot;: &quot;Answer only from the provided context. Be brief.&quot;,
+      &quot;workspaceSlug&quot;: &quot;policies&quot;
+    },
+    &quot;format&quot;: &quot;json&quot;
+  }&#39;)
+
+WORKFLOW_ID=$(echo &quot;$RESP&quot; | jq -r &#39;.value&#39;)
+echo &quot;Workflow ID: $WORKFLOW_ID&quot;
+
+# 2) Poll until completed or failed
+while true; do
+  STATUS=$(curl -sS -X POST &quot;$BASE_URL/api/query&quot; \
+    -H &quot;Content-Type: application/json&quot; \
+    -d &quot;{\&quot;path\&quot;: \&quot;workflows:get\&quot;, \&quot;args\&quot;: {\&quot;id\&quot;: \&quot;$WORKFLOW_ID\&quot;}, \&quot;format\&quot;: \&quot;json\&quot;}&quot; \
+    | jq -r &#39;.status&#39;)
+  echo &quot;Status: $STATUS&quot;
+  case &quot;$STATUS&quot; in
+    completed) break ;;
+    failed)    break ;;
+    cancelled) break ;;
+  esac
+  sleep 2
+done
+
+# 3) Fetch final result
+curl -sS -X POST &quot;$BASE_URL/api/query&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &quot;{\&quot;path\&quot;: \&quot;workflows:get\&quot;, \&quot;args\&quot;: {\&quot;id\&quot;: \&quot;$WORKFLOW_ID\&quot;}, \&quot;format\&quot;: \&quot;json\&quot;}&quot; \
+  | jq &#39;.result, .error&#39;
+</code></pre>
+<hr>
+<h2>Example: Create and Poll (Python)</h2>
+<pre><code class="language-python">import time
+import requests
+
+BASE_URL = &quot;https://your-orchestrator.example.com&quot;
+
+def create_workflow(prompt: str, system_prompt: str, workspace_slug: str | None = None) -&gt; str:
+    args = {&quot;prompt&quot;: prompt, &quot;systemPrompt&quot;: system_prompt}
+    if workspace_slug:
+        args[&quot;workspaceSlug&quot;] = workspace_slug
+    r = requests.post(
+        f&quot;{BASE_URL}/api/mutation&quot;,
+        json={&quot;path&quot;: &quot;workflows:create&quot;, &quot;args&quot;: args, &quot;format&quot;: &quot;json&quot;},
+        headers={&quot;Content-Type&quot;: &quot;application/json&quot;},
+    )
+    r.raise_for_status()
+    data = r.json()
+    if data.get(&quot;status&quot;) != &quot;success&quot;:
+        raise RuntimeError(data.get(&quot;errorMessage&quot;, data))
+    return data[&quot;value&quot;]
+
+def get_workflow(workflow_id: str) -&gt; dict:
+    r = requests.post(
+        f&quot;{BASE_URL}/api/query&quot;,
+        json={&quot;path&quot;: &quot;workflows:get&quot;, &quot;args&quot;: {&quot;id&quot;: workflow_id}, &quot;format&quot;: &quot;json&quot;},
+        headers={&quot;Content-Type&quot;: &quot;application/json&quot;},
+    )
+    r.raise_for_status()
+    return r.json()
+
+def run_prompt(prompt: str, system_prompt: str, workspace_slug: str | None = None, poll_interval: float = 2.0):
+    workflow_id = create_workflow(prompt, system_prompt, workspace_slug)
+    while True:
+        wf = get_workflow(workflow_id)
+        status = wf.get(&quot;status&quot;)
+        if status in (&quot;completed&quot;, &quot;failed&quot;, &quot;cancelled&quot;):
+            return wf.get(&quot;result&quot;), wf.get(&quot;error&quot;), status
+        time.sleep(poll_interval)
+
+# Usage
+result, error, status = run_prompt(
+    &quot;What is the refund window?&quot;,
+    &quot;Answer only from context. Be concise.&quot;,
+    workspace_slug=&quot;support-docs&quot;,
+)
+if status == &quot;completed&quot;:
+    print(result)
+else:
+    print(&quot;Error:&quot;, error)
+</code></pre>
+<hr>
+<h2>Workspace slug (routing to different knowledge bases)</h2>
+<ul>
+<li>The Orchestrator can use multiple AnythingLLM workspaces (e.g. “support-docs”, “internal-policies”, “default”).</li>
+<li>Pass <strong><code>workspaceSlug</code></strong> in <code>args</code> when creating a workflow to choose which workspace is used for RAG for that prompt.</li>
+<li>If you omit <strong><code>workspaceSlug</code></strong>, the Orchestrator uses its configured default workspace.</li>
+<li>Set <strong><code>createDynamicWorkspace</code></strong> to <code>true</code> to have the worker create a dedicated AnythingLLM workspace for that workflow (no pre-existing slug needed).</li>
+<li>Valid slug values and their meanings are defined by the team that runs the Orchestrator; ask them for the list.</li>
+</ul>
+<hr>
+<h2>Firecrawl (web search, scrape, browser workflow)</h2>
+<p>Web-related capabilities use <a href="https://docs.firecrawl.dev/introduction">Firecrawl</a>. The worker must have <strong><code>FIRECRAWL_API</code></strong> set (and <strong><code>FIRECRAWL_API_KEY</code></strong> when using Firecrawl cloud); otherwise <code>enableWebSearch</code>, <code>urlsToScrape</code>, and <code>enableBrowserWorkflow</code> are skipped (and the worker may log that Firecrawl is not configured).</p>
+<ul>
+<li><strong>Web search:</strong> <code>agentOptions.enableWebSearch: true</code> uses Firecrawl Search to add web results to context. See <a href="https://docs.firecrawl.dev/features/search">Firecrawl Search</a>.</li>
+<li><strong>URL scraping:</strong> <code>urlsToScrape: [&quot;https://...&quot;, ...]</code> uses Firecrawl Scrape to fetch markdown from each URL and add it to context. See <a href="https://docs.firecrawl.dev/features/scrape">Firecrawl Scrape</a>.</li>
+<li><strong>Browser workflow:</strong> <code>agentOptions.enableBrowserWorkflow: true</code> (or the validation agent setting <code>toolsRequired</code> including <code>browser</code>) uses the Firecrawl Browser Sandbox for multistep web agentic workflows (e.g. navigation, forms). See <a href="https://docs.firecrawl.dev/features/browser">Firecrawl Browser</a>.</li>
+</ul>
+<h3>Self-hosted Firecrawl</h3>
+<p>You can point the worker at a <a href="https://docs.firecrawl.dev/contributing/self-host">self-hosted Firecrawl</a> instance by setting <strong><code>FIRECRAWL_API</code></strong> to your instance base URL (e.g. <code>http://firecrawl-api:3002/v2</code> when using the unified Docker stack, or <code>http://localhost:3002/v2</code> when the worker runs on the host). An API key is <strong>optional</strong> for self-hosted. <strong>Search</strong> and <strong>scrape</strong> are supported; <strong>browser workflow</strong> is not supported in self-hosted Firecrawl and will be skipped with a log message. When using the Docker stack, the worker defaults to the in-stack Firecrawl API; no API key is required for that setup.</p>
+<hr>
+<h2>Checklist for Your Integration</h2>
+<ol>
+<li>Obtain <strong>base URL</strong> and <strong>admin key</strong> (if required) from the Orchestrator team. For the Docker stack, the API is at <code>http://&lt;host&gt;:3220</code>.</li>
+<li><strong>Create workflow:</strong> <code>POST /api/mutation</code> with <code>path: &quot;workflows:create&quot;</code> and <code>args: { prompt, systemPrompt, workspaceSlug?, agentOptions?, createDynamicWorkspace?, urlsToScrape? }</code>.</li>
+<li>Store the returned <strong>workflow ID</strong> (<code>value</code>).</li>
+<li><strong>Poll:</strong> <code>POST /api/query</code> with <code>path: &quot;workflows:get&quot;</code> and <code>args: { id: &quot;&lt;workflow_id&gt;&quot; }</code> until <code>status</code> is <code>completed</code>, <code>failed</code>, or <code>cancelled</code>.</li>
+<li>Read <strong><code>result</code></strong> on success or <strong><code>error</code></strong> on failure from the workflow document. Use <strong><code>workflowType</code></strong>, <strong><code>steps</code></strong>, <strong><code>toolsRequired</code></strong>, and <strong><code>validationResult</code></strong> when present for richer UI or logic.</li>
+<li>(Optional) Use <strong><code>workflows:listAll</code></strong> to list workflows, <strong><code>workflows:cancel</code></strong> to cancel a running workflow, or <strong><code>workflows:retry</code></strong> to retry a failed one.</li>
+</ol>
+
+  </article>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DONOTREPEAT.md — Procurement hub UI styles · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: DONOTREPEAT.md</p>
+    <h1>DONOTREPEAT.md — Procurement hub UI styles</h1>
+<p>Track of implemented styles and their snapshots to ensure <strong>no repetition</strong> across /1 through /10.</p>
+<h2>Acceptance summary</h2>
+<ul>
+<li><strong>Styles 1, 5, 10 — Accepted.</strong> Reachable at <code>/1</code> (Style 1 — Brutalist), <code>/2</code> (Style 10 — Maximalist/Bold), <code>/3</code> (Style 5 — Art deco).</li>
+<li><strong>Styles 6, 7, 8, 9, 10 (paths /6–/10) — Accepted.</strong> Reachable at <code>/6</code> (Terminal CRT), <code>/7</code> (Neon Noir), <code>/8</code> (Swiss numbered), <code>/9</code> (Horizontal strips), <code>/10</code> (Slate + violet, initial circles).</li>
+<li><strong>Styles 2, 3, 4, 6, 7, 8, 9 (earlier attempts) — Rejected.</strong> See <strong>Rejected styles</strong> below.</li>
+</ul>
+<hr>
+<h2>Rejected styles — avoid in future UI generation</h2>
+<p>Do <strong>not</strong> reuse these color palettes, typography, layouts, or approaches when generating new UI styles.</p>
+<h3>Rejected color palettes</h3>
+<ul>
+<li><strong>Warm cream + burgundy:</strong> <code>#f8f4ef</code> bg, <code>#6b2d2d</code> accent (Editorial)</li>
+<li><strong>Dark blue-gray + cyan:</strong> <code>#0f1419</code> bg, <code>#00e5cc</code> accent (Retro-futuristic)</li>
+<li><strong>Sage + earth green:</strong> <code>#e8f0e8</code> bg, <code>#2d5a27</code> accent (Organic)</li>
+<li><strong>Charcoal + steel blue:</strong> <code>#252528</code> bg, <code>#5b8fb9</code> accent (Industrial)</li>
+<li><strong>Ivory + deep plum:</strong> <code>#fafaf8</code> bg, <code>#5c4d7a</code> accent (Luxury)</li>
+<li><strong>Warm cream + coral/mint/butter:</strong> <code>#fef9f0</code> bg, <code>#e07a5f</code> coral, <code>#81b29a</code> mint, <code>#f2cc8f</code> butter (Playful)</li>
+<li><strong>Lavender + soft violet:</strong> <code>#e8e0f0</code> bg, <code>#9b8bb5</code> accent (Soft pastel)</li>
+</ul>
+<h3>Rejected typography</h3>
+<ul>
+<li>Playfair Display + Source Serif 4  </li>
+<li>Orbitron + Rajdhani  </li>
+<li>Nunito only  </li>
+<li>Bebas Neue + DM Sans  </li>
+<li>Libre Baskerville + Lora  </li>
+<li>Fredoka only  </li>
+<li>Outfit only (in a soft pastel context)</li>
+</ul>
+<h3>Rejected layout / component patterns</h3>
+<ul>
+<li>Bento 12-column grid with “every 4th item wide” (col-span-8 vs col-span-4)</li>
+<li>Single-column list only (no multi-column grid)</li>
+<li>Uniform 2–3 column grid with equal card sizes</li>
+<li>2-column-only grid with narrow max-width and soft shadows</li>
+<li>Rivet dots (small circular accents at card corners)</li>
+<li>Pill buttons (rounded-full) with scale hover</li>
+<li>Rounded-full buttons + rounded-2xl cards together</li>
+<li>Very rounded cards (rounded-[1.5rem] or rounded-3xl) in an organic/playful context</li>
+</ul>
+<h3>Rejected visual effects and tone</h3>
+<ul>
+<li>Glassmorphism (backdrop-blur) + left-border accent on cards</li>
+<li>Cyan/teal glow (text-shadow, box-shadow)</li>
+<li>Noise/grain texture overlay</li>
+<li>Editorial / magazine tone</li>
+<li>Retro-futuristic / glass tone</li>
+<li>Organic / natural tone</li>
+<li>Industrial / utilitarian tone with 1px borders</li>
+<li>Luxury / refined tone (generous whitespace, narrow max-width, soft shadows)</li>
+<li>Playful / toy-like tone (bouncy scale, coral/mint/butter)</li>
+<li>Soft pastel tone with header gradient overlay</li>
+</ul>
+<hr>
+<h2>Style 1 — Path: <code>/1</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Brutalist / Raw<br><strong>Snapshot:</strong> <code>snapshots/style-1.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-1.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Brutalist, raw aesthetic: monospace, no rounded corners, stark contrast.</li>
+<li>Asymmetric grid with some cards spanning two columns.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#0a0a0a</code> (near black)</li>
+<li>Text: <code>#f5f5f5</code> (off-white)</li>
+<li>Muted: <code>#888</code>, <code>#666</code>, <code>#222</code></li>
+<li>Accent: <code>#ffeb00</code> (electric yellow) for CTAs, links, key borders</li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: full-width, thick yellow bottom border; title left, two buttons right.</li>
+<li>Main: CSS Grid 3 columns (1fr 1fr 1.2fr); every 5th item <code>grid-column: span 2</code>.</li>
+<li>Cards: rectangular blocks, 2px borders, hover border → yellow.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Pure black. Font: IBM Plex Mono.
+Header: &quot;PROCUREMENT LINKS&quot; + &quot;IMPORT JSON&quot; | &quot;ADD LINK&quot; (yellow).
+Grid: Asymmetric 3-col; cards with CITY, STATE, Official site →, Procurement →, Edit.
+No rounded corners. Electric yellow accents only.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Black background + single bright accent (e.g. yellow)</li>
+<li>Monospace-only typography</li>
+<li>Asymmetric grid with “every Nth item spans 2 columns”</li>
+<li>Raw 2px rectangular borders, no radius</li>
+<li>IBM Plex Mono</li>
+</ul>
+<hr>
+<h2>Style 5 — Path: <code>/3</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Art deco / Geometric<br><strong>Snapshot:</strong> <code>snapshots/style-5.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-5.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Art deco: deep navy background, gold accents, Cinzel + Cormorant Garamond, decorative corner brackets on cards, strict 4-column grid, sharp corners (no radius).</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#0d1b2a</code> (deep navy)</li>
+<li>Text: <code>#e8e4dc</code> (off-white)</li>
+<li>Muted: <code>#8b9aaa</code>, <code>#2d3e50</code></li>
+<li>Accent: <code>#c9a227</code> (gold/brass) for borders, links, CTAs</li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: double gold bottom border; diamond ◆ + Cinzel title (tracking-widest); outline/solid gold buttons.</li>
+<li>Main: 4-column grid (2 on small). Cards: no radius, double border, top-left and bottom-right L-shaped gold corner brackets.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Deep navy. Fonts: Cinzel, Cormorant Garamond.
+Header: ◆ &quot;PROCUREMENT LINKS&quot; (gold border) + gold buttons (tracking-widest).
+4-col grid; cards with gold corner brackets, sharp corners, gold links.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Deep navy (#0d1b2a) + gold (#c9a227) palette</li>
+<li>Cinzel + Cormorant Garamond</li>
+<li>Art deco corner brackets (L-shaped accents on cards)</li>
+<li>Strict 4-column grid</li>
+<li>Sharp corners (rounded-none) on cards/dialogs</li>
+<li>Decorative diamond/symbol in header</li>
+</ul>
+<hr>
+<h2>Style 10 — Path: <code>/2</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Maximalist / Bold<br><strong>Snapshot:</strong> <code>snapshots/style-10.txt</code></p>
+<h3>High-level idea</h3>
+<ul>
+<li>Maximalist, bold: dark background (#1a1a1e) with diagonal stripe pattern (teal + orange). Syne only, uppercase, heavy weight. Dual accents: orange (#f59e0b) and teal (#0d9488). Thick (4px) borders. Cards with alternating 4px left border (orange/teal); hover offset box-shadow. 3-column grid. No rounded corners.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#1a1a1e</code> (dark)</li>
+<li>Card bg: <code>#25252a</code></li>
+<li>Text: <code>#f0f0f2</code>, muted <code>#8a8a8e</code></li>
+<li>Accent 1: <code>#f59e0b</code> (orange)</li>
+<li>Accent 2: <code>#0d9488</code> (teal)</li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: 4px orange bottom border; Syne extrabold uppercase title; centered small subtitle; teal outline + orange solid buttons.</li>
+<li>Main: 3-col grid; cards with 4px left border alternating orange/teal; hover shadow offset (4px 4px 0 teal). Links: Official site orange, Procurement teal; hover swap.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Dark + diagonal teal/orange stripe pattern. Font: Syne, uppercase.
+Header: Thick orange border; &quot;PROCUREMENT LINKS&quot; + teal/orange buttons.
+3-col grid; cards with alternating orange/teal left border, offset shadow on hover.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Dark + dual orange (#f59e0b) and teal (#0d9488) palette</li>
+<li>Syne only, bold uppercase</li>
+<li>Diagonal stripe pattern background</li>
+<li>Alternating left-border accent on cards (orange/teal by index)</li>
+<li>Offset box-shadow on hover (4px 4px 0)</li>
+<li>Maximalist / bold tone with 4px borders</li>
+</ul>
+<hr>
+<h2>Style 6 — Path: <code>/6</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Terminal CRT / Phosphor green<br><strong>Snapshot:</strong> <code>snapshots/style-6.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-6.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Terminal/CRT aesthetic: phosphor green on dark green-black. JetBrains Mono for header/buttons, Plus Jakarta Sans for card body. 6-column grid with staggered card spans (2,2,2 then 3,3 then 2,3,2…). Cards: 3px left accent, rounded-sm, no corner brackets.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#0c120c</code> (dark green-black)</li>
+<li>Text: <code>#c8e6c9</code> (light green)</li>
+<li>Muted: <code>#558b2f</code></li>
+<li>Borders: <code>#2e7d32</code></li>
+<li>Accent: <code>#69f0ae</code> (phosphor green)</li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: thin green bottom border; terminal-style &quot;&gt; procurement_links&quot;; import_json / add_link buttons (rounded-sm).</li>
+<li>Main: 6-column grid; cards span 2 or 3 columns in staggered pattern; 3px left border accent, 1px solid, rounded-sm.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Dark green-black. Fonts: JetBrains Mono (header/buttons), Plus Jakarta Sans (body).
+Header: &quot;&gt; procurement_links&quot; + import_json | add_link (phosphor green).
+6-col grid; staggered spans; cards with 3px left phosphor border, rounded-sm.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Dark green-black (#0c120c) + phosphor green (#69f0ae) palette</li>
+<li>JetBrains Mono + Plus Jakarta Sans</li>
+<li>Terminal/CRT phosphor green tone</li>
+<li>6-column grid with staggered span pattern (2,2,2 then 3,3 etc.)</li>
+<li>3px left border accent on cards with rounded-sm</li>
+</ul>
+<hr>
+<h2>Style 7 — Path: <code>/7</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Neon Noir / Magenta<br><strong>Snapshot:</strong> <code>snapshots/style-7.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-7.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Neon noir: near black (#0d0d0d), single accent neon magenta (#e91e8c). Archivo (headers/buttons) + Sora (body). 2-column masonry layout (column-count: 2); cards with 4px top border accent, rounded-lg, magenta glow on hover.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#0d0d0d</code> (near black)</li>
+<li>Card bg: <code>#1a1a1a</code></li>
+<li>Text: <code>#e0e0e0</code>, muted <code>#888</code></li>
+<li>Accent: <code>#e91e8c</code> (neon magenta), hover <code>#f06292</code></li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: 4px magenta bottom border; title + subtitle left; Import JSON / Add link right (rounded-lg).</li>
+<li>Main: 2-column masonry (CSS column-count); cards with 4px top border magenta, rounded-lg; break-inside-avoid so cards don’t split.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Near black. Fonts: Archivo, Sora.
+Header: &quot;Procurement Links&quot; + magenta border; Import JSON | Add link (rounded-lg).
+2-col masonry; cards with 4px top magenta border, rounded-lg, glow on hover.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Near black + neon magenta (#e91e8c) palette</li>
+<li>Archivo + Sora</li>
+<li>4px top border accent on cards</li>
+<li>2-column masonry (column-count: 2) layout</li>
+<li>Neon noir tone with magenta glow</li>
+</ul>
+<hr>
+<h2>Style 8 — Path: <code>/8</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Swiss / Numbered list (two columns)<br><strong>Snapshot:</strong> <code>snapshots/style-8.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-8.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Swiss/light: cream bg (#faf8f5), black text, deep red (#b71c1c) accent. Fraunces (display/serif) + Open Sans (body). Two-column layout of numbered rows: each column is a vertical list with large red numerals (1, 2, 3…), city/state/links. Not a card grid; not single-column only.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#faf8f5</code> (light cream)</li>
+<li>Text: <code>#1a1a1a</code>, muted <code>#666</code></li>
+<li>Accent: <code>#b71c1c</code> (deep red)</li>
+<li>Border: <code>#1a1a1a</code>, divide <code>#ddd</code></li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: 2px black bottom border; title + subtitle; Import JSON (outline) / Add link (red), rounded-md.</li>
+<li>Main: 2-column grid (md:grid-cols-2); each column is a list of numbered rows (numeral + city/state/links); divide-y between rows.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Light cream. Fonts: Fraunces, Open Sans.
+Header: &quot;Procurement Links&quot; + black border; Import JSON | Add link (red, rounded-md).
+Two columns of numbered rows; large red numerals, city/state/links per row.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Light cream (#faf8f5) + deep red (#b71c1c) palette</li>
+<li>Fraunces + Open Sans</li>
+<li>Numbered list with large red numerals</li>
+<li>Two-column numbered rows (not card grid)</li>
+<li>Swiss / light tone, rounded-md buttons</li>
+</ul>
+<hr>
+<h2>Style 9 — Path: <code>/9</code> — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Horizontal strips / Bar layout<br><strong>Snapshot:</strong> <code>snapshots/style-9.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-9.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Horizontal strip layout: light warm gray (#f0eeeb), white header bar. Each link = one full-width horizontal bar: city/state left, Official site | Procurement | Edit right. Manrope + Source Sans 3. Blue (#2563eb) accent. Rounded-xl white cards, hover shadow.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#f0eeeb</code> (light warm gray)</li>
+<li>Card/header bg: white</li>
+<li>Text: <code>#1c1917</code>, muted <code>#78716c</code></li>
+<li>Border: <code>#e5e2de</code></li>
+<li>Accent: <code>#2563eb</code> (blue)</li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: white bar, shadow, title + subtitle left, Import JSON / Add link right (rounded-lg).</li>
+<li>Main: stacked full-width bars (white, rounded-xl); each row: left = city + state, right = links + Edit; hover border + shadow.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Light warm gray. Header: white bar. Fonts: Manrope, Source Sans 3.
+Horizontal strips: city/state left, Official site | Procurement | Edit right. Blue accent, rounded-xl.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Light warm gray (#f0eeeb) + blue (#2563eb) palette</li>
+<li>Manrope + Source Sans 3</li>
+<li>Horizontal strip/bar layout (content left, links right, one row per item)</li>
+<li>Rounded-xl white cards on gray bg</li>
+<li>Dashboard/panel tone with white header bar</li>
+</ul>
+<hr>
+<h2>Style 10 (path <code>/10</code>) — <strong>Accepted</strong></h2>
+<p><strong>Name:</strong> Slate + violet with initial circles<br><strong>Snapshot:</strong> <code>snapshots/style-path10.txt</code><br><strong>Screenshot:</strong> <code>snapshots/style-path10.png</code> (capture when running app)</p>
+<h3>High-level idea</h3>
+<ul>
+<li>Dark slate (#0f172a) with violet (#7c3aed) accent. Lexend + Figtree. 3-column grid; each card has a prominent <strong>initial circle</strong> (city first letter in violet circle) left of content. Rounded-xl cards, no left/top border accent.</li>
+</ul>
+<h3>Color scheme</h3>
+<ul>
+<li>Background: <code>#0f172a</code> (slate)</li>
+<li>Card bg: <code>#1e293b</code></li>
+<li>Text: <code>#e2e8f0</code>, muted <code>#94a3b8</code></li>
+<li>Border: <code>#334155</code></li>
+<li>Accent: <code>#7c3aed</code>, links <code>#a78bfa</code></li>
+</ul>
+<h3>Layout</h3>
+<ul>
+<li>Header: thin slate border; title + subtitle; Import JSON / Add link (rounded-lg).</li>
+<li>Main: 3-column grid; each card = flex row: [circle with initial] + [city, state, links, Edit]; rounded-xl.</li>
+</ul>
+<h3>Text representation (from snapshot)</h3>
+<pre><code>Background: Slate dark. Fonts: Lexend, Figtree.
+Header: &quot;Procurement Links&quot; + violet buttons (rounded-lg).
+3-col grid; cards with violet initial circle (city letter) + content. Rounded-xl.
+</code></pre>
+<h3>Do NOT repeat in future styles</h3>
+<ul>
+<li>Slate (#0f172a) + violet (#7c3aed) palette</li>
+<li>Lexend + Figtree</li>
+<li>Initial/avatar circle (city first letter) on each card</li>
+<li>3-column grid with circle+content card layout</li>
+<li>Dark slate tone, rounded-xl cards</li>
+</ul>
+
+  </article>
+</body>
+</html>

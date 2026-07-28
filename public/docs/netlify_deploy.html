@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deploying the Cobecium web app on Netlify · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/NETLIFY_DEPLOY.md</p>
+    <h1>Deploying the Cobecium web app on Netlify</h1>
+<p>This doc covers deploying <strong>only the web app</strong> (Vite + React) to Netlify. The Convex backend runs separately (Convex Cloud or your own self-hosted instance); the app on Netlify talks to it via <code>VITE_CONVEX_URL</code>.</p>
+<hr>
+<h2>What’s already configured</h2>
+<ul>
+<li><strong><code>netlify.toml</code></strong> in the repo defines:<ul>
+<li>Build command: <code>npm run build</code></li>
+<li>Publish directory: <code>dist</code></li>
+<li>Node version: 20</li>
+<li>SPA rewrite: all routes serve <code>index.html</code> so client-side routing (e.g. <code>/analytics</code>, <code>/system-prompts</code>) works on direct load and refresh.</li>
+</ul>
+</li>
+</ul>
+<p>Netlify will pick this up when you connect the repo; you only need to set environment variables.</p>
+<hr>
+<h2>1. Connect the repository</h2>
+<ol>
+<li>In <a href="https://app.netlify.com">Netlify</a>: <strong>Add new site</strong> → <strong>Import an existing project</strong>.</li>
+<li>Choose your Git provider and select the <strong>cobecium</strong> repo.</li>
+<li>Netlify will detect Vite and suggest <strong>Build command</strong> <code>npm run build</code> and <strong>Publish directory</strong> <code>dist</code>. These are already set in <code>netlify.toml</code>, so you can leave them as-is (or confirm they match).</li>
+<li>Click <strong>Deploy site</strong> (the first deploy may fail until you set env vars; that’s expected).</li>
+</ol>
+<hr>
+<h2>2. Environment variables</h2>
+<p>Set these in <strong>Site configuration</strong> → <strong>Environment variables</strong> (or during the “Import” flow).</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>VITE_CONVEX_URL</code></td>
+<td><strong>Yes</strong></td>
+<td>URL the browser uses to reach Convex (e.g. your Convex Cloud deployment URL or your self-hosted Convex URL).</td>
+</tr>
+<tr>
+<td><code>VITE_ORCHESTRATOR_DOCS_URL</code></td>
+<td>No</td>
+<td>URL for the “orchestrator docs” link in the header (defaults to a placeholder if unset).</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Convex Cloud:</strong> use the deployment URL from your Convex dashboard (e.g. <code>https://your-deployment.convex.cloud</code>).</li>
+<li><strong>Self-hosted Convex:</strong> use the public URL where your Convex backend is reachable from the internet (e.g. <code>https://convex.yourdomain.com</code>). The Netlify app runs in the browser, so this must be a URL that the <strong>user’s browser</strong> can call.</li>
+</ul>
+<p>Do <strong>not</strong> put Convex admin keys or backend-only secrets in Netlify env; only <code>VITE_*</code> vars are needed for the frontend.</p>
+<p>After adding or changing env vars, trigger a <strong>new deploy</strong> (e.g. <strong>Deploys</strong> → <strong>Trigger deploy</strong> → <strong>Deploy site</strong>) so the build uses the new values.</p>
+<hr>
+<h2>3. After deploy</h2>
+<ul>
+<li>Your site will be at <code>https://&lt;site-name&gt;.netlify.app</code> (or your custom domain if configured).</li>
+<li>Test a few routes (e.g. <code>/</code>, <code>/analytics</code>, <code>/system-prompts</code>) by opening them directly and refreshing; they should all load the app (SPA rewrite).</li>
+</ul>
+<hr>
+<h2>Optional: Netlify CLI and local preview</h2>
+<ul>
+<li><p><strong>Manual deploy from CLI</strong></p>
+<pre><code class="language-bash">npm i -g netlify-cli
+netlify login
+netlify init   # link this repo to a Netlify site
+netlify deploy --prod
+</code></pre>
+<p>Build still runs with <code>npm run build</code>; publish directory is <code>dist</code>.</p>
+</li>
+<li><p><strong>Local dev with Netlify primitives</strong><br>For local use of Netlify features (redirects, env, etc.), you can add <code>@netlify/vite-plugin</code> and use it in <code>vite.config.ts</code>. This is optional and not required for deploying the app.</p>
+</li>
+</ul>
+<hr>
+<h2>Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Build command</td>
+<td><code>npm run build</code></td>
+</tr>
+<tr>
+<td>Publish directory</td>
+<td><code>dist</code></td>
+</tr>
+<tr>
+<td>Required env</td>
+<td><code>VITE_CONVEX_URL</code></td>
+</tr>
+<tr>
+<td>Optional env</td>
+<td><code>VITE_ORCHESTRATOR_DOCS_URL</code></td>
+</tr>
+<tr>
+<td>SPA routing</td>
+<td>Handled by <code>netlify.toml</code> rewrite</td>
+</tr>
+</tbody></table>
+
+  </article>
+</body>
+</html>

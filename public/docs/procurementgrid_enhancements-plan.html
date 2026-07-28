@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enhanced prompt: ProcurementGrid search and state consolidation · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/procurementgrid_enhancements.plan.md</p>
+    <hr>
+<h2>name: ProcurementGrid enhancements
+overview: &quot;Enhance the prompt for ProcurementGrid changes: add a search bar that filters by the table&#39;s indexed fields (state, city), with comma-separated terms OR&#39;d for multiple states/cities; consolidate the UI by state with counts and clickable city/procurement links.&quot;
+todos: []
+isProject: false</h2>
+<h1>Enhanced prompt: ProcurementGrid search and state consolidation</h1>
+<p>Use this refined prompt when implementing or delegating the work:</p>
+<hr>
+<p><strong>In <a href="src/components/ProcurementGrid.tsx">src/components/ProcurementGrid.tsx</a>, make the following changes:</strong></p>
+<p><strong>1) Add a search bar that uses the table&#39;s indexed fields</strong></p>
+<ul>
+<li>Add a search input (e.g. using <a href="src/components/ui/input.tsx">src/components/ui/input.tsx</a>) above the grid, with a clear label (e.g. &quot;Search by state or city&quot;). The search bar should handle multiple keywords with comma separation: <strong>each term is OR&#39;d</strong> so that a link matches if it matches <em>any</em> term. This allows filtering for multiple states at once (e.g. &quot;texas, florida&quot;) or different cities in different states (e.g. &quot;Austin, Miami&quot;).</li>
+<li>Filter the displayed links using the same fields that are indexed on the <code>procurementLinks</code> table in <a href="convex/schema.ts">convex/schema.ts</a>: <strong>state</strong>, <strong>city</strong>, and optionally <strong>official_website</strong> and <strong>procurement_link</strong> (e.g. case-insensitive substring match on state and city; URL fields optional). </li>
+<li>Keep filtering <strong>client-side</strong> by filtering the result of the existing <code>list</code> query; the indices are the source of truth for which fields are searchable. If you later need server-side search for large datasets, add a Convex query that uses <code>by_state</code> / <code>by_city</code> (e.g. filter by state first, then search within that state).</li>
+</ul>
+<p><strong>2) Consolidate the cards by state</strong></p>
+<ul>
+<li><strong>Group links by state</strong>: One card (or section) per state instead of one card per link.</li>
+<li>Preserve the <strong>Edit</strong> action per link (e.g. per row or via an edit button next to each city/link).</li>
+</ul>
+<hr>
+<h2>Implementation notes (for the plan)</h2>
+<ul>
+<li><strong>Data flow</strong>: Continue using <code>useQuery(api.procurementLinks.list)</code>; derive <code>filteredLinks</code> with a <code>useMemo</code> that filters by search string (state, city, and optionally URL fields). Derive <code>linksByState</code> by grouping <code>filteredLinks</code> by <code>link.state</code>.</li>
+<li><strong>Search</strong>: Search string is split on commas into multiple terms; a link is included if it matches <strong>any</strong> term (OR logic). Each term is matched against <code>state</code>, <code>city</code>, and optionally <code>official_website</code> and <code>procurement_link</code> (case-insensitive substring). Example: &quot;texas, florida&quot; shows all links in Texas or Florida; &quot;Austin, Miami&quot; shows those cities regardless of state.</li>
+<li><strong>UI structure</strong>: Map over <code>Object.entries(linksByState)</code> (or a sorted array of states) and render one Card per state; inside each card, map over that state&#39;s links and render city + clickable procurement link (+ optional official site link) + Edit.</li>
+<li><strong>Empty state</strong>: If <code>filteredLinks.length === 0</code>, show a &quot;No matches&quot; message; if <code>links.length === 0</code>, keep the existing empty state.</li>
+</ul>
+<hr>
+<h2>Clarification you may want to confirm</h2>
+<ul>
+<li><strong>Clickable element</strong>: The prompt says &quot;make the html element a clickable link.&quot; Assumption: the <strong>procurement portal</strong> (and optionally the official site) for each city should be <code>&lt;a&gt;</code> tags; the <strong>city name</strong> can be either plain text or also link to the procurement URL. If you want the city name itself to be the link to the procurement portal, say so explicitly in the prompt.</li>
+</ul>
+
+  </article>
+</body>
+</html>

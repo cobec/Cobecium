@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent brief: SAM opportunity embed + rank (ResearchTBR pattern) · Lynx Docs</title>
+  <style>
+    :root {
+      --bg: #1a1a1e;
+      --card: #25252a;
+      --text: #f0f0f2;
+      --muted: #8a8a8e;
+      --orange: #f59e0b;
+      --teal: #0d9488;
+      --border: #2e2e34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Syne, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 1.5rem;
+    }
+    .doc {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .meta {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--orange);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 { font-size: 1.75rem; color: var(--text); }
+    h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 1.05rem; color: var(--teal); }
+    p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
+    a { color: var(--teal); }
+    a:hover { color: var(--orange); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--card);
+      padding: 0.1em 0.35em;
+      border-radius: 2px;
+    }
+    pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 2px;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--orange); }
+    blockquote {
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      border-left: 4px solid var(--teal);
+      color: var(--muted);
+      background: var(--card);
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <p class="meta">Source: docs/SAM_OPPORTUNITY_RANKING_AGENT.md</p>
+    <h1>Agent brief: SAM opportunity embed + rank (ResearchTBR pattern)</h1>
+<p><strong>Audience:</strong> a fresh AI agent implementing or extending the system.<br><strong>Goal:</strong> Embedding + preference-ranking feed for <strong>federal contract opportunities</strong>, mirroring <a href="../../ResearchTbr/">ResearchTbr</a>, seeded from <strong>manual Databank CSV drops</strong>.</p>
+<p><strong>Product context:</strong> Cobecium / Lynx is a procurement hub for a <strong>government subcontractor</strong> (Cobec). Ranked feed is in Lynx at <strong><code>/opps</code></strong> (Clerk → Convex <code>samRank.ts</code> → SamRank <code>/api</code>). SamRank owns ranking/embeddings; do not reimplement embeddings inside Convex.</p>
+<p><strong>As-built integration (read this first):</strong> <a href="./OPPORTUNITIES_INTEGRATION.md"><code>OPPORTUNITIES_INTEGRATION.md</code></a> — routes, Convex env, SamRank ports, Firecrawl enrich APIs, card UX.</p>
+<hr>
+<h2>Non-goals (do not do)</h2>
+<ul>
+<li>Do <strong>not</strong> call undocumented Databank report URLs or require logged-in Databank session automation for CSV acquisition. Operators download CSVs manually into <code>samoutput/</code>.</li>
+<li>Do <strong>not</strong> require the <a href="../../SamOpps/">SamOpps</a> official Opportunities API key for v1 (optional later; quota-limited).</li>
+<li>Do <strong>not</strong> remount LM Studio embedding models on every row (see ResearchTBR <code>LmStudioModelGuard</code>).</li>
+<li>Do <strong>not</strong> re-embed inside Convex.</li>
+</ul>
+<p><strong>Allowed enrichment (as-built):</strong> After CSV ingest, SamRank may use <strong>self-hosted Firecrawl</strong> against <strong>public</strong> SAM.gov search/detail pages to resolve workspace detail URLs and full description text. That is separate from Databank scraping and does not use a SAM Public API key. See <a href="./OPPORTUNITIES_INTEGRATION.md#samgov-link--description-enrichment"><code>OPPORTUNITIES_INTEGRATION.md</code></a>.</p>
+<hr>
+<h2>Data source: <code>samoutput/</code></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/home/jmartinez/Projects/cobecium/samoutput/</code></td>
+<td>Drop zone for Excel/CSV exports from SAM.gov <strong>Contract Notice Details</strong> (and future similar dumps)</td>
+</tr>
+</tbody></table>
+<h3>Expectation</h3>
+<ul>
+<li><strong>More files will be added</strong> over time (new downloads, date slices, filters).</li>
+<li>Filenames vary (<code>Contract_Notice_Details.csv</code>, <code>Contract_Notice_Details (1).csv</code>, …). Treat the directory as a <strong>bag of CSVs</strong>, not a single fixed file.</li>
+<li>On ingest: scan <code>*.csv</code>, parse all, <strong>dedupe by <code>Notice ID</code></strong> (last-write / newest <code>Last Updated Date</code> wins).</li>
+<li>Keep an ingest manifest (which files seen, mtime, row counts, errors) so re-runs are incremental.</li>
+<li>CSV descriptions are often <strong>truncated</strong>; prefer Firecrawl description enrichment for UI-accurate text.</li>
+<li>CSV <code>SamUrl</code> builders are <strong>search deep-links</strong>; prefer Firecrawl link enrichment for <code>/workspace/contract/opp/{uuid}/view</code>.</li>
+</ul>
+<h3>Observed schema (27 columns)</h3>
+<p>Excel exports often have a <strong>leading space</strong> on the first header (<code> Contracting Office</code>). Normalize headers (trim) before mapping.</p>
+<table>
+<thead>
+<tr>
+<th>CSV column</th>
+<th>Suggested model field</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Notice ID</td>
+<td><code>NoticeId</code> (primary key)</td>
+<td>Required for dedupe</td>
+</tr>
+<tr>
+<td>Opportunity Title</td>
+<td><code>Title</code></td>
+<td>Core embed text</td>
+</tr>
+<tr>
+<td>Description</td>
+<td><code>Description</code></td>
+<td>Often HTML; strip tags for embed; may be truncated</td>
+</tr>
+<tr>
+<td>Contract Opportunity Type</td>
+<td><code>OpportunityType</code></td>
+<td>Solicitation, Presolicitation, …</td>
+</tr>
+<tr>
+<td>Current Set Aside</td>
+<td><code>SetAside</code></td>
+<td>e.g. Total Small Business Set-Aside</td>
+</tr>
+<tr>
+<td>NAICS</td>
+<td><code>Naics</code></td>
+<td>Text label in this export (not always 6-digit code)</td>
+</tr>
+<tr>
+<td>PSC</td>
+<td><code>Psc</code></td>
+<td>Text label</td>
+</tr>
+<tr>
+<td>Contracting Office</td>
+<td><code>ContractingOffice</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Sub Tier Name / Code</td>
+<td><code>SubTierName</code>, <code>SubTierCode</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Procurement AAC Code</td>
+<td><code>ProcurementAac</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Current Response Date</td>
+<td><code>ResponseDate</code></td>
+<td>Excel quirks possible — parse defensively</td>
+</tr>
+<tr>
+<td>Place of Performance - *</td>
+<td><code>PopCountry/Zip/City/State</code></td>
+<td></td>
+</tr>
+<tr>
+<td>POC Name / Email</td>
+<td><code>PocName</code>, <code>PocEmail</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Status</td>
+<td><code>Status</code></td>
+<td>Prefer Active for feed</td>
+</tr>
+<tr>
+<td>Last Updated Date / Last Published Date / Inactive Date</td>
+<td>timestamps</td>
+<td></td>
+</tr>
+<tr>
+<td>Initiative, IVL, attachment count, UEI, Legal Business Name</td>
+<td>keep on record</td>
+<td>useful filters later</td>
+</tr>
+</tbody></table>
+<p><strong>Corpus scale:</strong> thousands of unique notices after multi-file ingest (watch SamRank <code>Data/opportunities.json</code> / status).</p>
+<h3>Manual drops</h3>
+<p>Default watch path is <code>cobecium/samoutput</code> (configured in SamRank <code>Ingest:WatchDirectory</code>).</p>
+<hr>
+<h2>Reference implementation: ResearchTBR</h2>
+<p>Study these before coding (do not copy arXiv-specific logic blindly):</p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Path</th>
+<th>Reuse idea</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Paper model + stages</td>
+<td><code>ResearchTbr/Models/Paper.cs</code></td>
+<td>Opportunity model + <code>Ingested → Triaged → Ranked</code></td>
+</tr>
+<tr>
+<td>Preferences / votes</td>
+<td><code>ResearchTbr/Models/Preferences.cs</code></td>
+<td>Theme weights, keyword ±, vote learning</td>
+</tr>
+<tr>
+<td>Ranking blend</td>
+<td><code>ResearchTbr/Services/RankingService.cs</code></td>
+<td>Same structure; new themes/keywords</td>
+</tr>
+<tr>
+<td>Embeddings</td>
+<td><code>ResearchTbr/Services/EmbeddingService.cs</code></td>
+<td>Nomic + <code>search_document:</code> / <code>search_query:</code> prefixes</td>
+</tr>
+<tr>
+<td>Vector index</td>
+<td><code>ResearchTbr/Services/EmbeddingIndex.cs</code></td>
+<td><code>embeddings.bin</code> + <code>embeddings-index.json</code></td>
+</tr>
+<tr>
+<td>JSON store</td>
+<td><code>ResearchTbr/Services/JsonDataStore.cs</code></td>
+<td>Atomic write under <code>Data/</code></td>
+</tr>
+<tr>
+<td>LM Studio guard</td>
+<td><code>ResearchTbr/Services/LmStudioModelGuard.cs</code></td>
+<td>Cap LLM instances; don’t remount nomic</td>
+</tr>
+<tr>
+<td>Ranking skill</td>
+<td><code>ResearchTbr/.cursor/skills/research-tbr-ranking/SKILL.md</code></td>
+<td>Analogous skill lives under SamRank</td>
+</tr>
+<tr>
+<td>README / config</td>
+<td><code>ResearchTbr/README.md</code>, <code>appsettings.json</code></td>
+<td>Ports, batch sizes</td>
+</tr>
+</tbody></table>
+<p><strong>Spark services:</strong></p>
+<ul>
+<li>LM Studio embeddings: <code>http://127.0.0.1:1234/v1</code> (model <code>text-embedding-nomic-embed-text-v1.5</code>)</li>
+<li>SamRank: <code>:5190</code> · Lynx/Cobecium: <code>:9560</code> · Spark dashboard: <code>:8080</code></li>
+</ul>
+<hr>
+<h2>Project shape (as-built)</h2>
+<p><code>/home/jmartinez/Projects/SamRank/</code></p>
+<pre><code class="language-text">SamRank/
+  Models/Opportunity.cs, Preferences.cs, Tenant.cs, …
+  Services/
+    CsvIngestService.cs, RankingService.cs, EmbeddingService.cs, EmbeddingIndex.cs,
+    OpportunityApiService.cs, PipelineService.cs, TenantService.cs,
+    SamLinkEnrichmentService.cs, SamDescriptionEnrichmentService.cs, …
+  Data/                 # opportunities.json, embeddings.*, users/, teams/, enrich statuses
+  ApiEndpoints.cs
+  appsettings.json
+  .cursor/skills/sam-opportunity-ranking/SKILL.md
+</code></pre>
+<p>Config knobs (excerpt):</p>
+<pre><code class="language-json">{
+  &quot;Ingest&quot;: {
+    &quot;WatchDirectory&quot;: &quot;/home/jmartinez/Projects/cobecium/samoutput&quot;,
+    &quot;FileGlob&quot;: &quot;*.csv&quot;,
+    &quot;RescanSeconds&quot;: 60
+  },
+  &quot;LmStudio&quot;: {
+    &quot;BaseUrl&quot;: &quot;http://127.0.0.1:1234/v1&quot;,
+    &quot;EmbeddingModel&quot;: &quot;text-embedding-nomic-embed-text-v1.5&quot;,
+    &quot;MaxLlmInstances&quot;: 1
+  },
+  &quot;AgentLoop&quot;: {
+    &quot;FeedTopN&quot;: 10,
+    &quot;FeedMinScore&quot;: 0.20
+  },
+  &quot;Firecrawl&quot;: {
+    &quot;BaseUrl&quot;: &quot;http://127.0.0.1:3002&quot;,
+    &quot;Parallel&quot;: 3,
+    &quot;DescriptionParallel&quot;: 2,
+    &quot;ChainDescriptionEnrichment&quot;: true
+  }
+}
+</code></pre>
+<hr>
+<h2>Pipeline (canonical)</h2>
+<pre><code class="language-text">samoutput/*.csv
+    → parse + header normalize
+    → upsert by NoticeId → Data/opportunities.json
+    → (optional) Firecrawl: search URL → detail samUrl + samOppId
+    → (optional) Firecrawl: detail page → full DescriptionText/Html
+    → strip HTML description → DocumentText
+    → embed (batched) → embeddings.bin + embeddings-index.json
+    → heuristic triage + rank score → preferences-aware RankScore
+    → feed batch of top unvoted
+    → Yes/No (+ optional feedback) → update preferences/votes → re-rank
+</code></pre>
+<h3>1. Ingest</h3>
+<ul>
+<li>Read all <code>*.csv</code> with a real CSV parser (quotes, multiline Description cells).</li>
+<li>Trim column names; map case-insensitively.</li>
+<li>Skip rows without <code>Notice ID</code>.</li>
+<li>Dedupe: keep richest / newest row.</li>
+<li>Store structured JSON; preserve Description HTML/text; set search-style <code>SamUrl</code> until enriched.</li>
+<li>Record <code>SourceFiles[]</code> and <code>IngestedAt</code> on each opportunity.</li>
+</ul>
+<h3>2. Document text for embeddings</h3>
+<pre><code class="language-text">search_document: {Title}
+Type: {OpportunityType} | Set-aside: {SetAside} | NAICS: {Naics} | PSC: {Psc}
+Office: {ContractingOffice} | Sub-tier: {SubTierName}
+PoP: {City}, {State} {Zip}
+{plain-text Description truncated ~6k chars}
+</code></pre>
+<p>Query side: <code>search_query: {user text}</code>.</p>
+<p>After description enrichment, re-embed notices with <code>NeedsReembed</code> (pipeline embed phase).</p>
+<h3>3. Triage / themes (govcon BD)</h3>
+<table>
+<thead>
+<tr>
+<th>Theme key</th>
+<th>Intent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>small_business_setaside</code></td>
+<td>SB / 8(a) / HUBZone / SDVOSB / WOSB set-asides</td>
+</tr>
+<tr>
+<td><code>services_it</code></td>
+<td>IT, software, cyber, cloud</td>
+</tr>
+<tr>
+<td><code>construction_facilities</code></td>
+<td>Construction, repair, facilities</td>
+</tr>
+<tr>
+<td><code>professional_services</code></td>
+<td>Advisory, training, A&amp;E, support</td>
+</tr>
+<tr>
+<td><code>supplies_commodities</code></td>
+<td>Parts, equipment buys</td>
+</tr>
+<tr>
+<td><code>local_pop</code></td>
+<td>PoP near team footprint</td>
+</tr>
+<tr>
+<td><code>prime_teaming</code></td>
+<td>Large primes / IDVs</td>
+</tr>
+<tr>
+<td><code>compliance_heavy</code></td>
+<td>FedRAMP, NIST, CMMC, 508</td>
+</tr>
+<tr>
+<td><code>short_fuse</code></td>
+<td>Response deadline soon</td>
+</tr>
+</tbody></table>
+<h3>4. Rank score blend</h3>
+<pre><code class="language-text">score = 0.30*triage + 0.30*fit + 0.25*normalizedThemeWeight + keywordAdj + deadlineAdj
+</code></pre>
+<p>Per-team overlays under <code>Data/teams/{id}/ranking.json</code>.</p>
+<h3>5. Votes / learning</h3>
+<p>Yes/No (+ optional feedback). Shared corpus; per-user votes/batch under <code>Data/users/{id}/</code>.</p>
+<h3>6. Semantic search</h3>
+<p>Cosine search over embedding index. Lynx → <code>samRank.search</code>.</p>
+<hr>
+<h2>UI surfaces</h2>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Lynx <code>/opps</code></td>
+<td>Yes/No/Feedback on ranked batch + semantic search</td>
+</tr>
+<tr>
+<td>Lynx <code>/opps/approved</code></td>
+<td>Yes votes</td>
+</tr>
+<tr>
+<td>Lynx <code>/opps/status</code></td>
+<td>Ingest/embed/rank health + Rescan</td>
+</tr>
+<tr>
+<td>SamRank Blazor (optional)</td>
+<td>Engine-side UI on <code>:5190</code></td>
+</tr>
+</tbody></table>
+<p>Deep links after enrichment: <code>https://sam.gov/workspace/contract/opp/{uuid}/view</code>.</p>
+<hr>
+<h2>Spark / ops checklist</h2>
+<ol>
+<li>LM Studio up with nomic embed loaded.  </li>
+<li>SamRank systemd user unit enabled; visible on Spark dashboard.  </li>
+<li>Firecrawl reachable on <code>:3002</code> if running enrich jobs.  </li>
+<li>Convex <code>SAMRANK_BASE_URL</code> points at SamRank from the backend network.  </li>
+<li>Re-scan <code>samoutput</code> when new CSVs appear (watcher / Rescan / pipeline).</li>
+</ol>
+<hr>
+<h2>Acceptance criteria</h2>
+<ol>
+<li>New CSV in <code>samoutput/</code> → upserted opportunities (deduped by Notice ID).  </li>
+<li>Embeddings without OOM / duplicate llama-server storms.  </li>
+<li>Feed shows top-ranked unvoted items; Yes/No updates ranking.  </li>
+<li>Semantic search works.  </li>
+<li>Lynx <code>/opps</code> works for signed-in users via Convex → SamRank.  </li>
+<li>Link/description Firecrawl enrichment can fix search URLs and truncated CSV text (POC: ~1932/1969 detail URLs; residual failures documented in <a href="./OPPORTUNITIES_INTEGRATION.md#poc-enrich-results-corpus-1969-notices-jul-2026"><code>OPPORTUNITIES_INTEGRATION.md</code></a>).  </li>
+<li>SamRank skill documents themes, blend, and vote learning.</li>
+</ol>
+<hr>
+<h2>Related docs</h2>
+<ul>
+<li><strong>Integration (Lynx wiring):</strong> <a href="./OPPORTUNITIES_INTEGRATION.md"><code>OPPORTUNITIES_INTEGRATION.md</code></a>  </li>
+<li>Cobecium docs UI: <code>/docs</code> on Lynx  </li>
+<li>SamOpps (optional API): <code>/home/jmartinez/Projects/SamOpps/docs/POLICY.md</code></li>
+</ul>
+
+  </article>
+</body>
+</html>

@@ -14,6 +14,7 @@ import type * as huntAnalytics from "../huntAnalytics.js";
 import type * as orchestrator from "../orchestrator.js";
 import type * as orchestratorDocsSync from "../orchestratorDocsSync.js";
 import type * as procurementLinks from "../procurementLinks.js";
+import type * as samRank from "../samRank.js";
 import type * as sample from "../sample.js";
 import type * as seed from "../seed.js";
 import type * as seedFeedback from "../seedFeedback.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   orchestrator: typeof orchestrator;
   orchestratorDocsSync: typeof orchestratorDocsSync;
   procurementLinks: typeof procurementLinks;
+  samRank: typeof samRank;
   sample: typeof sample;
   seed: typeof seed;
   seedFeedback: typeof seedFeedback;

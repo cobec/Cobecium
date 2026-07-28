@@ -1,0 +1,328 @@
+<h1>Opportunities integration (Lynx ↔ SamRank)</h1>
+<p><strong>Product UI:</strong> Lynx <code>/opps</code>, <code>/opps/approved</code>, <code>/opps/status</code> (Clerk-authenticated).<br><strong>Ranking engine:</strong> sibling <strong>SamRank</strong> at <code>/home/jmartinez/Projects/SamRank</code> (<code>.NET 10</code>, port <strong><code>:5190</code></strong>).<br><strong>Bridge:</strong> Convex actions in <a href="../convex/samRank.ts"><code>convex/samRank.ts</code></a>.</p>
+<p>Embeddings and preference learning stay on SamRank. Convex/Lynx never re-embeds.</p>
+<hr>
+<h2>Architecture</h2>
+<pre><code class="language-text">samoutput/*.csv  ──ingest──►  SamRank Data/opportunities.json
+                                    │
+                                    ├─ embed (LM Studio Nomic :1234)
+                                    ├─ rank (team overlay + personal votes)
+                                    ├─ Firecrawl enrich links / descriptions
+                                    │
+Clerk user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CSV drops</strong> (<code>cobecium/samoutput/</code>)</td>
+<td>Corpus membership + structured fields from SAM Databank exports</td>
+</tr>
+<tr>
+<td><strong>SamRank</strong></td>
+<td>Ingest, dedupe, embeddings, ranking, votes, HTTP API, Firecrawl enrichment</td>
+</tr>
+<tr>
+<td><strong>Convex <code>samRank.ts</code></strong></td>
+<td>Clerk identity → SamRank user ensure; proxy feed/vote/search/status/pipeline</td>
+</tr>
+<tr>
+<td><strong>Lynx UI</strong></td>
+<td>Opportunity cards, Yes/No/Feedback, semantic search, approved list, status</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Lynx routes &amp; UI</h2>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Page</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/opps</code></td>
+<td>Feed + semantic search</td>
+<td>Top-N unvoted batch (<code>FeedTopN</code>, default 10). Cards show type/status, dates, identifiers, POC, PoP, classification, description preview</td>
+</tr>
+<tr>
+<td><code>/opps/approved</code></td>
+<td>Yes votes</td>
+<td>Personal / team scope via API</td>
+</tr>
+<tr>
+<td><code>/opps/status</code></td>
+<td>Pipeline health</td>
+<td>Ingest / embed / rank phase; Rescan triggers SamRank pipeline</td>
+</tr>
+</tbody></table>
+<p><strong>Card UX (as-built):</strong></p>
+<ul>
+<li>Sectioned layout: Identifiers · Contact &amp; location · Classification · Description</li>
+<li><strong>Open on SAM.gov</strong> button under the title (uses enriched detail URL when available)</li>
+<li>Description is clamped on the card; <strong>View full description</strong> opens a modal</li>
+<li>Votes: No / Feedback / Yes (feedback dialog attaches a note)</li>
+</ul>
+<p>Nav: Lynx header → <strong>Opportunities</strong>.</p>
+<hr>
+<h2>Convex env</h2>
+<p>Set on the <strong>Convex backend</strong> (not Vite):</p>
+<pre><code class="language-bash">docker compose exec app bunx convex env set SAMRANK_BASE_URL &#39;http://cobec-spark:5190&#39;
+docker compose exec app bunx convex env set SAMRANK_DEFAULT_TEAM_ID &#39;cobec&#39;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SAMRANK_BASE_URL</code></td>
+<td>Base URL reachable from the Convex/backend container</td>
+</tr>
+<tr>
+<td><code>SAMRANK_DEFAULT_TEAM_ID</code></td>
+<td>Team for ranking overlay (default <code>cobec</code>)</td>
+</tr>
+</tbody></table>
+<p>See <a href="../.env.example"><code>.env.example</code></a>.</p>
+<h3>Convex actions (<code>convex/samRank.ts</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>SamRank API</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ensureMe</code></td>
+<td><code>POST /api/users/ensure</code></td>
+</tr>
+<tr>
+<td><code>getFeed</code></td>
+<td><code>GET /api/feed?userId=</code></td>
+</tr>
+<tr>
+<td><code>getBatch</code></td>
+<td><code>GET /api/batch?userId=</code></td>
+</tr>
+<tr>
+<td><code>castVote</code></td>
+<td><code>POST /api/vote</code></td>
+</tr>
+<tr>
+<td><code>rerollBatch</code></td>
+<td><code>POST /api/batch/reroll</code></td>
+</tr>
+<tr>
+<td><code>getApproved</code></td>
+<td><code>GET /api/approved?userId=&amp;scope=</code></td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code>GET /api/search?userId=&amp;q=</code></td>
+</tr>
+<tr>
+<td><code>getStatus</code></td>
+<td><code>GET /api/status</code></td>
+</tr>
+<tr>
+<td><code>runPipeline</code></td>
+<td><code>POST /api/pipeline/run</code></td>
+</tr>
+</tbody></table>
+<p>Identity: Clerk <code>subject</code> → SamRank <code>externalId</code> (sanitized user id under <code>Data/users/{id}/</code>).</p>
+<hr>
+<h2>SamRank ops (Spark)</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Path</td>
+<td><code>/home/jmartinez/Projects/SamRank</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>5190</code> (<code>http://cobec-spark:5190</code>)</td>
+</tr>
+<tr>
+<td>systemd</td>
+<td><code>~/.config/systemd/user/samrank.service</code></td>
+</tr>
+<tr>
+<td>CSV watch</td>
+<td><code>/home/jmartinez/Projects/cobecium/samoutput/</code></td>
+</tr>
+<tr>
+<td>LM Studio</td>
+<td><code>http://127.0.0.1:1234</code> — model <code>text-embedding-nomic-embed-text-v1.5</code></td>
+</tr>
+<tr>
+<td>Firecrawl</td>
+<td>Self-hosted <code>http://127.0.0.1:3002</code> (link + description enrichment)</td>
+</tr>
+</tbody></table>
+<p>Health: <code>GET http://127.0.0.1:5190/api/health</code></p>
+<h3>Core pipeline</h3>
+<ol>
+<li><strong>Ingest</strong> CSVs → upsert by <code>NoticeId</code>  </li>
+<li><strong>Rank</strong> (team overlay + themes)  </li>
+<li><strong>Embed</strong> backlog batches  </li>
+<li><strong>Feed</strong> packs top-N unvoted for each user</li>
+</ol>
+<p><code>POST /api/pipeline/run</code> (also Lynx <strong>Rescan</strong>) runs one cycle.</p>
+<h3>SAM.gov link &amp; description enrichment</h3>
+<p>CSV exports only give <strong>search deep-links</strong> and often <strong>truncated descriptions</strong>. SamRank resolves public detail pages with <strong>Firecrawl</strong> (no SAM Public API key required):</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Endpoint</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Link enrich</td>
+<td><code>POST /api/enrich/links</code></td>
+<td>Scrape search URL → replace <code>samUrl</code> with <code>https://sam.gov/workspace/contract/opp/{uuid}/view</code>, store <code>samOppId</code></td>
+</tr>
+<tr>
+<td>Description enrich</td>
+<td><code>POST /api/enrich/descriptions</code></td>
+<td>Scrape detail <code>samUrl</code> → full <code>descriptionText</code> / <code>descriptionHtml</code>, set <code>descriptionEnrichedAt</code>, mark <code>needsReembed</code></td>
+</tr>
+</tbody></table>
+<p>Status (GET only):</p>
+<ul>
+<li><code>/api/enrich/links/status</code></li>
+<li><code>/api/enrich/descriptions/status</code></li>
+</ul>
+<p>Examples:</p>
+<pre><code class="language-bash"># Resume remaining search→detail URL resolution (async)
+curl -sS -X POST http://127.0.0.1:5190/api/enrich/links \
+  -H &#39;Content-Type: application/json&#39; -d &#39;{&quot;force&quot;:false}&#39;
+
+# Enrich descriptions for notices that already have detail URLs
+curl -sS -X POST http://127.0.0.1:5190/api/enrich/descriptions \
+  -H &#39;Content-Type: application/json&#39; -d &#39;{&quot;force&quot;:false}&#39;
+
+# Targeted sync smoke test
+curl -sS -X POST http://127.0.0.1:5190/api/enrich/descriptions \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&quot;sync&quot;:true,&quot;force&quot;:true,&quot;noticeIds&quot;:[&quot;PANMCC26P0000049225&quot;]}&#39;
+</code></pre>
+<p>Config (<code>SamRank/appsettings.json</code> → <code>Firecrawl</code>): <code>BaseUrl</code>, <code>Parallel</code>, <code>DescriptionParallel</code>, <code>WaitForMs</code>, <code>ChainDescriptionEnrichment</code> (auto-start descriptions after a full link run).</p>
+<p>Failure tracking (append-only while jobs run):</p>
+<ul>
+<li><code>SamRank/Data/enrichment-failures.jsonl</code></li>
+<li><code>SamRank/Data/enrichment-failures-summary.md</code> (written when a tracker finishes)</li>
+</ul>
+<p><strong>Do not restart SamRank mid-job</strong> unless necessary — in-memory progress is lost; disk checkpoints for completed notices are kept.</p>
+<h3>POC enrich results (corpus ~1969 notices, Jul 2026)</h3>
+<p>Accepted for POC: high coverage is enough; remaining failures are mostly inactive/legacy or extract edge cases.</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th align="right">Processed</th>
+<th align="right">Updated</th>
+<th align="right">Failed</th>
+<th>Failure reason (logged)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Links</td>
+<td align="right">1578 (remaining after prior partial run; corpus end state <strong>1932/1969</strong> with detail URLs)</td>
+<td align="right">1541 (this run)</td>
+<td align="right"><strong>37</strong></td>
+<td><code>no detail link in search results</code></td>
+</tr>
+<tr>
+<td>Descriptions</td>
+<td align="right">1931</td>
+<td align="right">1722</td>
+<td align="right"><strong>209</strong></td>
+<td><code>could not extract description</code></td>
+</tr>
+</tbody></table>
+<p><strong>Link failures (37) — why</strong></p>
+<p>All failed the same way: Firecrawl scraped the SAM <strong>search</strong> page and found no <code>/workspace/contract/opp/{uuid}/view</code> href.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th align="right">Approx. count</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Inactive / cancelled in store</td>
+<td align="right">~26</td>
+<td>Archived notices often don’t surface a usable detail link in the public search UI Firecrawl sees</td>
+</tr>
+<tr>
+<td>Active but scrape empty</td>
+<td align="right">~11</td>
+<td>Often still findable via SAM’s public search JSON; Firecrawl miss (timing/UI). Retryable later</td>
+</tr>
+<tr>
+<td>No SAM hit</td>
+<td align="right">~2</td>
+<td>e.g. test/bogus ids like <code>HC101326TEST</code></td>
+</tr>
+</tbody></table>
+<p>Notices without a detail URL keep the CSV-style <strong>search deep-link</strong>; Lynx <strong>Open on SAM.gov</strong> still works, just lands on search instead of the workspace detail page.</p>
+<p><strong>Description failures (209) — why</strong></p>
+<p>Detail URL existed, but markdown/HTML parsing could not pull a usable body (empty/short extract). Card still shows CSV preview text; modal shows whatever <code>descriptionText</code> is stored.</p>
+<p><strong>Ops tip:</strong> reconcile anytime with:</p>
+<pre><code class="language-bash"># counts still missing detail URLs / descriptionEnrichedAt
+python3 - &lt;&lt;&#39;PY&#39;
+import json,re
+ops=json.load(open(&quot;/home/jmartinez/Projects/SamRank/Data/opportunities.json&quot;))[&quot;opportunities&quot;]
+pat=re.compile(r&quot;opp/[a-f0-9]{32}/view&quot;, re.I)
+print(&quot;total&quot;, len(ops))
+print(&quot;detail urls&quot;, sum(1 for o in ops if pat.search(o.get(&quot;samUrl&quot;) or &quot;&quot;)))
+print(&quot;desc enriched&quot;, sum(1 for o in ops if o.get(&quot;descriptionEnrichedAt&quot;)))
+PY
+curl -s http://127.0.0.1:5190/api/enrich/links/status | python3 -m json.tool
+curl -s http://127.0.0.1:5190/api/enrich/descriptions/status | python3 -m json.tool
+</code></pre>
+<hr>
+<h2>Data fields shown in Lynx</h2>
+<p>From SamRank feed/search DTOs:</p>
+<ul>
+<li>Title, opportunity type, status  </li>
+<li>Respond by / inactive dates  </li>
+<li>Notice ID, procurement AAC  </li>
+<li>POC email, place of performance  </li>
+<li>NAICS, PSC, sub tier  </li>
+<li>Description preview + full text (when enriched)  </li>
+<li><code>samUrl</code> (prefer workspace detail URL after link enrich)</li>
+</ul>
+<hr>
+<h2>Local checklist</h2>
+<ol>
+<li>SamRank up (<code>systemctl --user status samrank</code> or Spark dashboard).  </li>
+<li>Convex env <code>SAMRANK_BASE_URL</code> set (from app container network).  </li>
+<li>Clerk signed in → open <code>/opps</code>.  </li>
+<li>Drop CSVs into <code>samoutput/</code> → Rescan (or wait for watch).  </li>
+<li>Optionally run link then description enrichment so Open on SAM.gov and full descriptions are accurate.</li>
+</ol>
+<hr>
+<h2>Related docs</h2>
+<ul>
+<li>Agent / ranking design: <a href="./SAM_OPPORTUNITY_RANKING_AGENT.md"><code>SAM_OPPORTUNITY_RANKING_AGENT.md</code></a>  </li>
+<li>Agent gotchas: <a href="../AGENTS.md"><code>../AGENTS.md</code></a>  </li>
+<li>SamOpps (optional official Opportunities API, key required): <code>/home/jmartinez/Projects/SamOpps/</code>  </li>
+<li>SamRank skill: <code>/home/jmartinez/Projects/SamRank/.cursor/skills/sam-opportunity-ranking/SKILL.md</code></li>
+</ul>

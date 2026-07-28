@@ -20,6 +20,11 @@ import { Style7Page } from "@/pages/Style7Page";
 import { Style8Page } from "@/pages/Style8Page";
 import { Style9Page } from "@/pages/Style9Page";
 import { StylePath10Page } from "@/pages/StylePath10Page";
+import { DocsIndexPage } from "@/pages/DocsIndexPage";
+import { DocsViewerPage } from "@/pages/DocsViewerPage";
+import { OpportunitiesFeedPage } from "@/pages/OpportunitiesFeedPage";
+import { OpportunitiesApprovedPage } from "@/pages/OpportunitiesApprovedPage";
+import { OpportunitiesStatusPage } from "@/pages/OpportunitiesStatusPage";
 
 function HomeOrRedirect() {
   const { isSignedIn } = useAuth();
@@ -78,6 +83,30 @@ function App() {
               </AuthenticatedRoute>
             }
           />
+          <Route
+            path="/opps"
+            element={
+              <AuthenticatedRoute>
+                <OpportunitiesFeedPage />
+              </AuthenticatedRoute>
+            }
+          />
+          <Route
+            path="/opps/approved"
+            element={
+              <AuthenticatedRoute>
+                <OpportunitiesApprovedPage />
+              </AuthenticatedRoute>
+            }
+          />
+          <Route
+            path="/opps/status"
+            element={
+              <AuthenticatedRoute>
+                <OpportunitiesStatusPage />
+              </AuthenticatedRoute>
+            }
+          />
           <Route path="/1" element={<LandingV1 />} />
           <Route path="/2" element={<LandingV2 />} />
           <Route path="/3" element={<LandingV3 />} />
@@ -88,6 +117,8 @@ function App() {
           <Route path="/8" element={<Style8Page />} />
           <Route path="/9" element={<Style9Page />} />
           <Route path="/10" element={<StylePath10Page />} />
+          <Route path="/docs" element={<DocsIndexPage />} />
+          <Route path="/docs/:slug" element={<DocsViewerPage />} />
           </Routes>
         </div>
         <AppFooter />
