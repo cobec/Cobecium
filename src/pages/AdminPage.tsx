@@ -11,9 +11,9 @@ export function AdminPage() {
   const setRole = useMutation(api.users.setRole);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSetRole = (clerkUserId: string, role: "admin" | "user") => {
+  const handleSetRole = (externalId: string, role: "admin" | "user") => {
     setError(null);
-    setRole({ clerkUserId, role }).catch((e) => {
+    setRole({ externalId, role }).catch((e) => {
       setError(e instanceof Error ? e.message : "Failed to update role");
     });
   };
@@ -62,7 +62,7 @@ export function AdminPage() {
                   >
                     <td className="px-4 py-3">
                       <span className="font-medium text-foreground">
-                        {u.name ?? u.email ?? u.clerkUserId}
+                        {u.name ?? u.email ?? u.externalId}
                       </span>
                       {u.email && (
                         <span className="text-muted-foreground text-sm block">
@@ -88,7 +88,7 @@ export function AdminPage() {
                           variant="outline"
                           className="uppercase font-semibold"
                           onClick={() =>
-                            handleSetRole(u.clerkUserId, "admin")
+                            handleSetRole(u.externalId, "admin")
                           }
                         >
                           Elevate to admin
@@ -99,7 +99,7 @@ export function AdminPage() {
                           variant="outline"
                           className="uppercase font-semibold"
                           onClick={() =>
-                            handleSetRole(u.clerkUserId, "user")
+                            handleSetRole(u.externalId, "user")
                           }
                         >
                           Demote to user

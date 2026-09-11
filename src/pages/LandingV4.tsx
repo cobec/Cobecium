@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { SignInButton, SignUpButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { EntraSignInButton } from "@/auth/EntraAuthButtons";
 
 function useReveal(threshold = 0.25) {
   const ref = useRef<HTMLDivElement>(null);
@@ -80,16 +80,12 @@ export function LandingV4() {
             Lynx
           </span>
           <div className="flex items-center gap-3">
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="sm" className="v4-mono uppercase text-[10px] font-bold tracking-[0.2em] text-[var(--base-muted)] hover:text-[var(--base-text)]">
+            <EntraSignInButton><Button variant="ghost" size="sm" className="v4-mono uppercase text-[10px] font-bold tracking-[0.2em] text-[var(--base-muted)] hover:text-[var(--base-text)]">
                 Sign in
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button size="sm" className="v4-mono uppercase text-[10px] font-bold tracking-[0.2em] bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-5">
+              </Button></EntraSignInButton>
+            <EntraSignInButton><Button size="sm" className="v4-mono uppercase text-[10px] font-bold tracking-[0.2em] bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-5">
                 Start
-              </Button>
-            </SignUpButton>
+              </Button></EntraSignInButton>
           </div>
         </header>
 
@@ -134,11 +130,9 @@ export function LandingV4() {
             className="mt-12 flex items-center gap-6"
             style={{ animation: "v4-fade-up 0.7s 0.9s cubic-bezier(0.16,1,0.3,1) backwards" }}
           >
-            <SignUpButton mode="modal">
-              <Button size="lg" className="v4-mono uppercase font-bold text-xs tracking-[0.15em] px-8 py-6 rounded-none bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-transparent hover:text-[var(--base-orange)] border-2 border-[var(--base-orange)] transition-colors duration-300">
+            <EntraSignInButton><Button size="lg" className="v4-mono uppercase font-bold text-xs tracking-[0.15em] px-8 py-6 rounded-none bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-transparent hover:text-[var(--base-orange)] border-2 border-[var(--base-orange)] transition-colors duration-300">
                 Get started
-              </Button>
-            </SignUpButton>
+              </Button></EntraSignInButton>
             <Link to="/app" className="v4-mono text-xs uppercase tracking-[0.15em] text-[var(--base-teal)] hover:text-[var(--base-text)] transition-colors border-b border-[var(--base-teal)]/40 pb-1">
               Explore app →
             </Link>
@@ -235,11 +229,9 @@ export function LandingV4() {
           <p className="v4-mono text-[10px] uppercase tracking-[0.3em] text-[var(--base-muted)] mb-6">
             Already have an account?
           </p>
-          <SignInButton mode="modal">
-            <Button variant="outline" className="v4-mono uppercase text-[10px] font-bold tracking-[0.2em] rounded-none border border-[var(--base-muted)]/30 hover:border-[var(--base-text)] px-8 py-5 transition-colors duration-300">
+          <EntraSignInButton><Button variant="outline" className="v4-mono uppercase text-[10px] font-bold tracking-[0.2em] rounded-none border border-[var(--base-muted)]/30 hover:border-[var(--base-text)] px-8 py-5 transition-colors duration-300">
               Sign in
-            </Button>
-          </SignInButton>
+            </Button></EntraSignInButton>
         </section>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { SignInButton, SignUpButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { EntraSignInButton } from "@/auth/EntraAuthButtons";
 
 function useReveal(threshold = 0.2) {
   const ref = useRef<HTMLDivElement>(null);
@@ -98,16 +98,12 @@ export function LandingV5() {
       <header className="relative z-30 flex items-center justify-between px-6 sm:px-10 pt-6 pb-4 border-b border-[var(--base-muted)]/10">
         <span className="v5-mono text-sm font-bold uppercase tracking-[0.2em]">Lynx</span>
         <div className="flex items-center gap-3">
-          <SignInButton mode="modal">
-            <Button variant="ghost" size="sm" className="v5-mono uppercase text-[10px] font-medium tracking-[0.15em] text-[var(--base-muted)] hover:text-[var(--base-text)]">
+          <EntraSignInButton><Button variant="ghost" size="sm" className="v5-mono uppercase text-[10px] font-medium tracking-[0.15em] text-[var(--base-muted)] hover:text-[var(--base-text)]">
               Sign in
-            </Button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <Button size="sm" className="v5-mono uppercase text-[10px] font-bold tracking-[0.15em] bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-5">
+            </Button></EntraSignInButton>
+          <EntraSignInButton><Button size="sm" className="v5-mono uppercase text-[10px] font-bold tracking-[0.15em] bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-5">
               Get started
-            </Button>
-          </SignUpButton>
+            </Button></EntraSignInButton>
         </div>
       </header>
 
@@ -161,11 +157,9 @@ export function LandingV5() {
               className="flex flex-wrap gap-4 v5-in"
               style={{ animationDelay: "0.65s" }}
             >
-              <SignUpButton mode="modal">
-                <Button size="lg" className="v5-mono uppercase font-bold text-[11px] tracking-[0.1em] px-8 py-6 rounded-none bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-transparent hover:text-[var(--base-orange)] border-2 border-[var(--base-orange)] transition-colors duration-300">
+              <EntraSignInButton><Button size="lg" className="v5-mono uppercase font-bold text-[11px] tracking-[0.1em] px-8 py-6 rounded-none bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-transparent hover:text-[var(--base-orange)] border-2 border-[var(--base-orange)] transition-colors duration-300">
                   Get started
-                </Button>
-              </SignUpButton>
+                </Button></EntraSignInButton>
               <Link to="/app">
                 <Button size="lg" variant="outline" className="v5-mono uppercase font-bold text-[11px] tracking-[0.1em] px-8 py-6 rounded-none border-2 border-[var(--base-teal)] text-[var(--base-teal)] hover:bg-[var(--base-teal)] hover:text-[var(--base-bg)] transition-colors duration-300">
                   Explore
@@ -284,11 +278,9 @@ export function LandingV5() {
               <p className="v5-mono text-[10px] uppercase tracking-[0.2em] text-[var(--base-muted)] mb-4">
                 Already have an account?
               </p>
-              <SignInButton mode="modal">
-                <Button variant="outline" className="v5-mono uppercase text-[10px] font-bold tracking-[0.15em] rounded-none border border-[var(--base-muted)]/30 hover:border-[var(--base-text)] px-8 py-5 transition-colors duration-300">
+              <EntraSignInButton><Button variant="outline" className="v5-mono uppercase text-[10px] font-bold tracking-[0.15em] rounded-none border border-[var(--base-muted)]/30 hover:border-[var(--base-text)] px-8 py-5 transition-colors duration-300">
                   Sign in
-                </Button>
-              </SignInButton>
+                </Button></EntraSignInButton>
             </div>
           </div>
         </div>

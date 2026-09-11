@@ -11,6 +11,7 @@
 import type * as crons from "../crons.js";
 import type * as feedback from "../feedback.js";
 import type * as huntAnalytics from "../huntAnalytics.js";
+import type * as lib_identity from "../lib/identity.js";
 import type * as orchestrator from "../orchestrator.js";
 import type * as orchestratorDocsSync from "../orchestratorDocsSync.js";
 import type * as procurementLinks from "../procurementLinks.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   feedback: typeof feedback;
   huntAnalytics: typeof huntAnalytics;
+  "lib/identity": typeof lib_identity;
   orchestrator: typeof orchestrator;
   orchestratorDocsSync: typeof orchestratorDocsSync;
   procurementLinks: typeof procurementLinks;

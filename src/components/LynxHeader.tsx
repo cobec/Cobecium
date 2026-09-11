@@ -1,13 +1,21 @@
 import { Link } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { EntraAuthButtons, useAppAuth } from "@/auth/EntraAuthButtons";
 
 const ORCHESTRATOR_DOCS_URL =
   import.meta.env.VITE_ORCHESTRATOR_DOCS_URL || "http://cobec-spark:5180/api/docs";
 
-type ActivePage = "procurement" | "system-prompts" | "analytics" | "admin" | "feedback" | "feedbackDetail" | "opportunities";
+type ActivePage =
+  | "procurement"
+  | "system-prompts"
+  | "analytics"
+  | "admin"
+  | "feedback"
+  | "feedbackDetail"
+  | "opportunities"
+  | "docs";
 
 interface LynxHeaderProps {
   subtitle: string;
@@ -19,6 +27,7 @@ export function LynxHeader({ subtitle, activePage }: LynxHeaderProps) {
   const markDocsSeen = useMutation(api.orchestratorDocsSync.markOrchestratorDocsSeen);
   const myRole = useQuery(api.users.getMyRole);
   const isAdmin = myRole?.role === "admin";
+  const { isSignedIn } = useAppAuth();
 
   const navButtonClasses = (isActive: boolean) =>
     `border-2 font-semibold uppercase rounded-none transition-colors ${
@@ -36,24 +45,13 @@ export function LynxHeader({ subtitle, activePage }: LynxHeaderProps) {
 
   return (
     <header>
-      {/* Top band: logo + tagline centered; auth buttons top-right */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-5 border-b-4 border-primary relative">
         <div className="absolute top-4 right-4 sm:top-5 sm:right-6 flex items-center gap-2 z-10">
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <Button variant="outline" size="sm" className="uppercase font-semibold">
-                Sign in
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button variant="default" size="sm" className="uppercase font-semibold">
-                Sign up
-              </Button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
+          {isSignedIn ? (
+            <EntraAuthButtons signOutLabel="Sign out" />
+          ) : (
+            <EntraAuthButtons signInLabel="Sign in" variant="default" />
+          )}
         </div>
         <div className="text-center relative">
           <div className="inline-flex items-center justify-center gap-2">
@@ -77,7 +75,6 @@ export function LynxHeader({ subtitle, activePage }: LynxHeaderProps) {
           </p>
         </div>
       </div>
-      {/* Nav row under the orange line */}
       <div className="bg-primary/5">
         <nav
           className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3"
@@ -102,9 +99,19 @@ export function LynxHeader({ subtitle, activePage }: LynxHeaderProps) {
           <Link to="/feedback">
             <Button
               variant="outline"
-              className={navButtonClasses(activePage === "feedback" || activePage === "feedbackDetail")}
+              className={navButtonClasses(
+                activePage === "feedback" || activePage === "feedbackDetail"
+              )}
             >
               Feedback
+            </Button>
+          </Link>
+          <Link to="/docs">
+            <Button
+              variant="outline"
+              className={navButtonClasses(activePage === "docs")}
+            >
+              Docs
             </Button>
           </Link>
           {isAdmin && (
@@ -142,4 +149,3 @@ export function LynxHeader({ subtitle, activePage }: LynxHeaderProps) {
     </header>
   );
 }
-

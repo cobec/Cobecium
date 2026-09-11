@@ -1,7 +1,7 @@
-import { Link, useSearchParams } from "react-router-dom";
-import { SignInButton, SignUpButton, useAuth, UserButton } from "@clerk/react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
+import { EntraAuthButtons, EntraSignInButton, useAppAuth } from "@/auth/EntraAuthButtons";
 
 function useReveal(threshold = 0.2) {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,10 +26,7 @@ const features = [
 ];
 
 export function LandingV3() {
-  const { isSignedIn } = useAuth();
-  const [searchParams] = useSearchParams();
-  const returnUrl = searchParams.get("redirect") || "/feedback";
-
+  const { isSignedIn } = useAppAuth();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -83,20 +80,16 @@ export function LandingV3() {
                     <span className="inline-block skew-x-[6deg]">Go to app</span>
                   </Button>
                 </Link>
-                <UserButton />
+                <EntraAuthButtons />
               </>
             ) : (
               <>
-                <SignInButton mode="modal">
-                  <Button variant="ghost" size="sm" className="v3-body uppercase text-xs font-medium tracking-widest text-[var(--base-muted)] hover:text-[var(--base-text)]">
+                <EntraSignInButton><Button variant="ghost" size="sm" className="v3-body uppercase text-xs font-medium tracking-widest text-[var(--base-muted)] hover:text-[var(--base-text)]">
                     Sign in
-                  </Button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <Button size="sm" className="v3-body uppercase text-xs font-semibold tracking-widest bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-6 skew-x-[-6deg]">
+                  </Button></EntraSignInButton>
+                <EntraSignInButton><Button size="sm" className="v3-body uppercase text-xs font-semibold tracking-widest bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-6 skew-x-[-6deg]">
                     <span className="inline-block skew-x-[6deg]">Get started</span>
-                  </Button>
-                </SignUpButton>
+                  </Button></EntraSignInButton>
               </>
             )}
           </div>
@@ -154,14 +147,12 @@ export function LandingV3() {
                 </Link>
               ) : (
                 <>
-                  <SignUpButton mode="modal">
-                    <Button
+                  <EntraSignInButton><Button
                       size="lg"
                       className="v3-body uppercase font-bold text-sm px-10 py-6 rounded-none bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] skew-x-[-6deg] transition-transform hover:skew-x-0 duration-300"
                     >
                       <span className="inline-block skew-x-[6deg] hover:skew-x-0 transition-transform duration-300">Get started</span>
-                    </Button>
-                  </SignUpButton>
+                    </Button></EntraSignInButton>
                   <Link to="/app">
                     <Button
                       size="lg"
@@ -336,14 +327,12 @@ export function LandingV3() {
                   </Button>
                 </Link>
               ) : (
-                <SignInButton mode="modal" fallbackRedirectUrl={returnUrl}>
-                  <Button
+                <EntraSignInButton><Button
                     size="sm"
                     className="v3-body uppercase font-semibold rounded-none border-2 border-[var(--base-orange)] text-[var(--base-orange)] hover:bg-[var(--base-orange)] hover:text-[var(--base-bg)]"
                   >
                     Send feedback / Report a bug
-                  </Button>
-                </SignInButton>
+                  </Button></EntraSignInButton>
               )}
             </div>
             <p className="v3-body text-xs text-center text-[var(--base-muted)] mt-2" style={{ transform: "skew(2deg)" }}>
@@ -364,14 +353,12 @@ export function LandingV3() {
             ) : (
               <>
                 <p className="v3-body text-[var(--base-muted)] text-lg mb-4">Already have an account?</p>
-                <SignInButton mode="modal">
-                  <Button
+                <EntraSignInButton><Button
                     variant="outline"
                     className="v3-body uppercase font-semibold text-sm rounded-none border-2 border-[var(--base-muted)]/40 hover:border-[var(--base-text)] px-8 py-5 skew-x-[-6deg] transition-all hover:skew-x-0 duration-300"
                   >
                     <span className="inline-block skew-x-[6deg]">Sign in</span>
-                  </Button>
-                </SignInButton>
+                  </Button></EntraSignInButton>
               </>
             )}
           </div>

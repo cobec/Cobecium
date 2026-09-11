@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DONOTREPEAT.md — Procurement hub UI styles · Lynx Docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #1a1a1e;
@@ -21,11 +24,55 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.65;
-      padding: 1.5rem;
+    }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .top {
+      border-bottom: 4px solid var(--orange);
+      padding: 1rem 1.25rem 0.85rem;
+      text-align: center;
+    }
+    .top a.brand {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-size: 1.75rem;
+      text-transform: uppercase;
+    }
+    .top .tag {
+      margin: 0.25rem 0 0;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+    }
+    .top nav {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .top nav a {
+      border: 2px solid var(--teal);
+      color: var(--text);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+    }
+    .top nav a:hover, .top nav a.active {
+      border-color: var(--orange);
+      background: var(--orange);
+      color: #111;
     }
     .doc {
       max-width: 48rem;
       margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+      flex: 1;
     }
     .meta {
       font-size: 0.75rem;
@@ -36,12 +83,8 @@
       padding-bottom: 0.75rem;
       border-bottom: 2px solid var(--orange);
     }
-    h1, h2, h3, h4 {
-      line-height: 1.25;
-      margin-top: 1.75rem;
-      margin-bottom: 0.75rem;
-    }
-    h1 { font-size: 1.75rem; color: var(--text); }
+    h1, h2, h3, h4 { line-height: 1.25; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+    h1 { font-size: 1.75rem; }
     h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
     h3 { font-size: 1.05rem; color: var(--teal); }
     p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
@@ -52,27 +95,16 @@
       font-size: 0.88em;
       background: var(--card);
       padding: 0.1em 0.35em;
-      border-radius: 2px;
     }
     pre {
       background: var(--card);
       border: 1px solid var(--border);
       padding: 1rem;
       overflow-x: auto;
-      border-radius: 2px;
     }
     pre code { background: none; padding: 0; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.92rem;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 0.5rem 0.65rem;
-      text-align: left;
-      vertical-align: top;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border); padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
     th { background: var(--card); color: var(--orange); }
     blockquote {
       margin-left: 0;
@@ -82,12 +114,29 @@
       background: var(--card);
     }
     hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .foot {
+      border-top: 4px solid var(--orange);
+      padding: 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
-  <article class="doc">
-    <p class="meta">Source: DONOTREPEAT.md</p>
-    <h1>DONOTREPEAT.md — Procurement hub UI styles</h1>
+  <div class="shell">
+    <header class="top">
+      <a class="brand" href="/">Lynx</a>
+      <p class="tag">Documentation</p>
+      <nav aria-label="Docs">
+        <a href="/docs">All docs</a>
+        <a class="active" href="/docs/donotrepeat">DONOTREPEAT.md — Procurement hub UI styles</a>
+        <a href="/app">App</a>
+      </nav>
+    </header>
+    <article class="doc">
+      <p class="meta">Source: DONOTREPEAT.md · slug: donotrepeat</p>
+      <h1>DONOTREPEAT.md — Procurement hub UI styles</h1>
 <p>Track of implemented styles and their snapshots to ensure <strong>no repetition</strong> across /1 through /10.</p>
 <h2>Acceptance summary</h2>
 <ul>
@@ -407,6 +456,8 @@ Header: &quot;Procurement Links&quot; + violet buttons (rounded-lg).
 <li>Dark slate tone, rounded-xl cards</li>
 </ul>
 
-  </article>
+    </article>
+    <footer class="foot">Cobec · Lynx · HTML docs generated from Markdown</footer>
+  </div>
 </body>
 </html>

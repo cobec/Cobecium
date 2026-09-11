@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "@clerk/react";
+import { useAppAuth } from "@/auth/EntraAuthButtons";
 import { ProcurementGrid } from "@/components/ProcurementGrid";
 import { SystemPromptsGrid } from "@/components/SystemPromptsGrid";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
@@ -27,7 +27,7 @@ import { OpportunitiesApprovedPage } from "@/pages/OpportunitiesApprovedPage";
 import { OpportunitiesStatusPage } from "@/pages/OpportunitiesStatusPage";
 
 function HomeOrRedirect() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAppAuth();
   if (isSignedIn) return <Navigate to="/app" replace />;
   return <LandingV3 />;
 }
@@ -118,7 +118,7 @@ function App() {
           <Route path="/9" element={<Style9Page />} />
           <Route path="/10" element={<StylePath10Page />} />
           <Route path="/docs" element={<DocsIndexPage />} />
-          <Route path="/docs/:slug" element={<DocsViewerPage />} />
+          <Route path="/docs/*" element={<DocsViewerPage />} />
           </Routes>
         </div>
         <AppFooter />

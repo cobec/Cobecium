@@ -41,12 +41,12 @@ export default defineSchema({
   }).index("by_state", ["state"]),
 
   lynxUsers: defineTable({
-    clerkUserId: v.string(),
+    externalId: v.string(),
     name: v.optional(v.string()),
     email: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("user")),
     updatedAt: v.number(),
-  }).index("by_clerkUserId", ["clerkUserId"]),
+  }).index("by_externalId", ["externalId"]),
 
   /** Singleton-style row for orchestrator API docs sync (hash + timestamps; optional file storage ref). */
   orchestratorDocsSync: defineTable({
@@ -59,7 +59,7 @@ export default defineSchema({
 
   // Feedback / feature-request board
   feedback: defineTable({
-    clerkUserId: v.string(),
+    externalId: v.string(),
     name: v.optional(v.string()),
     email: v.optional(v.string()),
     title: v.string(),
@@ -80,28 +80,28 @@ export default defineSchema({
     .index("by_createdAt", ["createdAt"])
     .index("by_voteScore", ["voteScore"])
     .index("by_board", ["board"])
-    .index("by_clerkUserId", ["clerkUserId"]),
+    .index("by_externalId", ["externalId"]),
 
   feedbackVotes: defineTable({
     feedbackId: v.id("feedback"),
-    clerkUserId: v.string(),
+    externalId: v.string(),
     value: v.union(v.literal(1), v.literal(-1)),
-  }).index("by_feedback_user", ["feedbackId", "clerkUserId"]),
+  }).index("by_feedback_user", ["feedbackId", "externalId"]),
 
   feedbackImportance: defineTable({
     feedbackId: v.id("feedback"),
-    clerkUserId: v.string(),
+    externalId: v.string(),
     rating: v.union(
       v.literal("not_important"),
       v.literal("nice_to_have"),
       v.literal("important"),
       v.literal("essential")
     ),
-  }).index("by_feedback_user", ["feedbackId", "clerkUserId"]),
+  }).index("by_feedback_user", ["feedbackId", "externalId"]),
 
   feedbackComments: defineTable({
     feedbackId: v.id("feedback"),
-    clerkUserId: v.string(),
+    externalId: v.string(),
     name: v.optional(v.string()),
     body: v.string(),
     createdAt: v.number(),
@@ -115,13 +115,13 @@ export default defineSchema({
 
   commentVotes: defineTable({
     commentId: v.id("feedbackComments"),
-    clerkUserId: v.string(),
+    externalId: v.string(),
     value: v.union(v.literal(1), v.literal(-1)),
-  }).index("by_comment_user", ["commentId", "clerkUserId"]),
+  }).index("by_comment_user", ["commentId", "externalId"]),
 
   feedbackSubscriptions: defineTable({
     feedbackId: v.id("feedback"),
-    clerkUserId: v.string(),
+    externalId: v.string(),
     createdAt: v.number(),
-  }).index("by_feedback_user", ["feedbackId", "clerkUserId"]),
+  }).index("by_feedback_user", ["feedbackId", "externalId"]),
 });

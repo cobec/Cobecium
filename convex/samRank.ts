@@ -1,10 +1,11 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
+import { getExternalId } from "./lib/identity";
 
 /**
  * Lynx ↔ SamRank bridge.
  * SamRank owns CSV ingest, embeddings, ranking, preference learning, Firecrawl enrich.
- * Convex/Lynx owns Clerk auth + product UI (`/opps`).
+ * Convex/Lynx owns Entra auth + product UI (`/opps`).
  *
  * Docs: docs/OPPORTUNITIES_INTEGRATION.md
  *
@@ -57,23 +58,25 @@ async function readJson(res: Response): Promise<unknown> {
   return data;
 }
 
-async function requireIdentity(ctx: { auth: { getUserIdentity: () => Promise<{ subject: string; name?: string; email?: string } | null> } }) {
+async function requireIdentity(ctx: {
+  auth: { getUserIdentity: () => Promise<import("convex/server").UserIdentity | null> };
+}) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Sign in required");
   return identity;
 }
 
 async function ensureSamUser(
-  identity: { subject: string; name?: string; email?: string }
+  identity: import("convex/server").UserIdentity
 ): Promise<{ id: string; displayName: string; teamId: string }> {
   const displayName =
     identity.name?.trim() ||
     identity.email?.trim() ||
-    identity.subject;
+    getExternalId(identity);
   const res = await samFetch("/api/users/ensure", {
     method: "POST",
     body: JSON.stringify({
-      externalId: identity.subject,
+      externalId: getExternalId(identity),
       displayName,
       teamId: defaultTeamId(),
     }),
@@ -196,6 +199,65 @@ export const runPipeline = action({
   handler: async (ctx) => {
     await requireIdentity(ctx);
     const res = await samFetch("/api/pipeline/run", { method: "POST" });
+    return await readJson(res);
+  },
+});
+
+/** Metadata for enriched corpus seed export (prod seeding — not legacy CSV). */
+export const exportCorpusMeta = action({
+  args: {
+    enrichedLinksOnly: v.optional(v.boolean()),
+    enrichedDescriptionsOnly: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await requireIdentity(ctx);
+    const params = new URLSearchParams();
+    if (args.enrichedLinksOnly) params.set("enrichedLinksOnly", "true");
+    if (args.enrichedDescriptionsOnly) params.set("enrichedDescriptionsOnly", "true");
+    const q = params.toString();
+    const res = await samFetch(`/api/export/corpus/meta${q ? `?${q}` : ""}`);
+    return await readJson(res);
+  },
+});
+
+/** Paginated opportunities for browser download assembly. */
+export const exportCorpusPage = action({
+  args: {
+    offset: v.optional(v.number()),
+    limit: v.optional(v.number()),
+    enrichedLinksOnly: v.optional(v.boolean()),
+    enrichedDescriptionsOnly: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await requireIdentity(ctx);
+    const params = new URLSearchParams({
+      offset: String(args.offset ?? 0),
+      limit: String(args.limit ?? 200),
+    });
+    if (args.enrichedLinksOnly) params.set("enrichedLinksOnly", "true");
+    if (args.enrichedDescriptionsOnly) params.set("enrichedDescriptionsOnly", "true");
+    const res = await samFetch(`/api/export/corpus/page?${params.toString()}`);
+    return await readJson(res);
+  },
+});
+
+/** Write full seed file on SamRank disk under Data/exports/. */
+export const writeCorpusExport = action({
+  args: {
+    format: v.optional(v.union(v.literal("json"), v.literal("csv"))),
+    enrichedLinksOnly: v.optional(v.boolean()),
+    enrichedDescriptionsOnly: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await requireIdentity(ctx);
+    const res = await samFetch("/api/export/corpus/write", {
+      method: "POST",
+      body: JSON.stringify({
+        format: args.format ?? "json",
+        enrichedLinksOnly: args.enrichedLinksOnly ?? false,
+        enrichedDescriptionsOnly: args.enrichedDescriptionsOnly ?? false,
+      }),
+    });
     return await readJson(res);
   },
 });

@@ -28,7 +28,7 @@
 </tr>
 <tr>
 <td><strong>Auth</strong></td>
-<td>Clerk (sign-in, sign-up, <code>UserButton</code>); identity synced to Convex</td>
+<td>Microsoft Entra ID (MSAL) → Convex JWT; identity synced to <code>lynxUsers.externalId</code> (oid)</td>
 </tr>
 <tr>
 <td><strong>Backend / DB</strong></td>
@@ -43,9 +43,9 @@
 <hr>
 <h2>Architecture overview</h2>
 <ul>
-<li><strong>App (Vite)</strong> – SPA on port 5173; <code>@/</code> alias points at <code>src/</code>. Uses <code>ClerkProvider</code> and <code>ConvexProviderWithClerk</code>; <code>useStoreUserEffect</code> syncs Clerk identity into Convex <code>lynxUsers</code>.</li>
+<li><strong>App (Vite)</strong> – SPA on port 5173; <code>@/</code> alias points at <code>src/</code>. Uses <code>MsalProvider</code> + <code>ConvexProviderWithAuth</code>; <code>useStoreUserEffect</code> syncs Entra identity into Convex <code>lynxUsers</code>.</li>
 <li><strong>Convex</strong> – Backend can run in Convex Cloud or <strong>self-hosted</strong> (Docker: backend + dashboard + app container that runs <code>convex dev</code> + Vite). See <code>docs/CONVEX_LOCAL_SETUP.md</code>.</li>
-<li><strong>Routes</strong> – <code>/</code> / <code>/app</code> = Procurement grid; <code>/opps</code> (+ <code>/approved</code>, <code>/status</code>) = federal Opportunities feed (Clerk + SamRank); <code>/system-prompts</code>, <code>/analytics</code>, <code>/admin</code> are admin-only (guarded by <code>AdminOnlyRoute</code> and Convex <code>requireAdmin</code>). Style demos live at <code>/1</code>–<code>/10</code>.</li>
+<li><strong>Routes</strong> – <code>/</code> / <code>/app</code> = Procurement grid; <code>/opps</code> (+ <code>/approved</code>, <code>/status</code>) = federal Opportunities feed (Entra + SamRank); <code>/system-prompts</code>, <code>/analytics</code>, <code>/admin</code> are admin-only (guarded by <code>AdminOnlyRoute</code> and Convex <code>requireAdmin</code>). Style demos live at <code>/1</code>–<code>/10</code>.</li>
 <li><strong>Data flow</strong> – Grid reads <code>api.procurementLinks.list</code> and <code>api.systemPrompts.list</code>; Opportunities reads Convex <code>api.samRank.*</code> actions that proxy SamRank <code>:5190</code>. Admins can import JSON, add/edit links, and edit prompts. “Start Hunt” uses <code>api.orchestrator.createWorkflow</code> (and related actions) and opens <code>HuntChatModal</code> to poll workflow status.</li>
 <li><strong>Orchestrator docs sync</strong> – Convex can fetch and hash the Orchestrator API docs; the header shows an indicator when stored docs have changed. See <code>convex/orchestratorDocsSync.ts</code> and env vars in <code>docs/CONVEX_LOCAL_SETUP.md</code>.</li>
 </ul>
@@ -53,8 +53,8 @@
 <h2>Developer conventions</h2>
 <ul>
 <li><strong>Path alias</strong> – Use <code>@/</code> for <code>src/</code> (e.g. <code>@/components/LynxHeader</code>, <code>@/lib/utils</code>). Configured in <code>tsconfig.json</code> and <code>vite.config.ts</code>.</li>
-<li><strong>Convex</strong> – Backend lives in <code>convex/</code>. Do not edit <code>convex/_generated/*</code> by hand. For self-hosted, do not set <code>CONVEX_DEPLOYMENT</code> when using <code>CONVEX_SELF_HOSTED_*</code>; see <a href="AGENTS.md">AGENTS.md</a> and <a href="docs/CONVEX_CLI_LOGIN.md">docs/CONVEX_CLI_LOGIN.md</a>.</li>
-<li><strong>Auth and roles</strong> – Convex validates Clerk JWTs via <code>auth.config.ts</code>. Roles (<code>admin</code> / <code>user</code>) live in <code>lynxUsers</code>; first admin can be bootstrapped with <code>LYNX_FIRST_ADMIN_CLERK_ID</code>. See <a href="docs/AUTH_AND_ADMIN_SETUP.md">docs/AUTH_AND_ADMIN_SETUP.md</a>.</li>
+<li><strong>Convex</strong> – Backend lives in <code>convex/</code>. Do not edit <code>convex/_generated/*</code> by hand. For self-hosted, do not set <code>CONVEX_DEPLOYMENT</code> when using <code>CONVEX_SELF_HOSTED_*</code>; see <a href="/docs/agents">AGENTS.md</a> and <a href="/docs/convex-cli-login">docs/CONVEX_CLI_LOGIN.md</a>.</li>
+<li><strong>Auth and roles</strong> – Convex validates Entra ID tokens via <code>auth.config.ts</code>. Roles (<code>admin</code> / <code>user</code>) live in <code>lynxUsers</code>; first admin can be bootstrapped with <code>LYNX_FIRST_ADMIN_OID</code>. See <a href="/docs/auth-and-admin-setup">docs/AUTH_AND_ADMIN_SETUP.md</a> and <a href="/docs/entra-auth-spike">docs/ENTRA_AUTH_SPIKE.md</a>.</li>
 <li><strong>UI</strong> – Shared components under <code>src/components/</code> (including <code>ui/</code> for primitives). Prefer Tailwind and existing design tokens (e.g. <code>primary</code>, <code>accent</code>, <code>--base-orange</code>, <code>--base-teal</code>). Style-demo pages are isolated under <code>src/pages/Style*Page.tsx</code> and <code>StylePath10Page.tsx</code>.</li>
 <li><strong>Strict TypeScript</strong> – <code>strict</code>, <code>noUnusedLocals</code>, <code>noUnusedParameters</code>, <code>noUncheckedIndexedAccess</code> in <code>tsconfig.json</code>. Convex types come from <code>convex/_generated</code>.</li>
 <li><strong>Scripts</strong> – <code>bun run dev</code> (or <code>npm run dev</code>) runs Vite and Convex dev concurrently. Build: <code>bun run build</code>; preview: <code>bun run preview</code>.</li>
@@ -69,31 +69,35 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><a href="docs/OPPORTUNITIES_INTEGRATION.md">docs/OPPORTUNITIES_INTEGRATION.md</a></td>
+<td><a href="/docs/opportunities-integration">docs/OPPORTUNITIES_INTEGRATION.md</a></td>
 <td>Lynx ↔ SamRank Opportunities integration (routes, env, enrich)</td>
 </tr>
 <tr>
-<td><a href="docs/SAM_OPPORTUNITY_RANKING_AGENT.md">docs/SAM_OPPORTUNITY_RANKING_AGENT.md</a></td>
+<td><a href="/docs/sam-opportunity-ranking-agent">docs/SAM_OPPORTUNITY_RANKING_AGENT.md</a></td>
 <td>CSV → embed → rank agent brief</td>
 </tr>
 <tr>
-<td><a href="docs/CONVEX_CLI_LOGIN.md">docs/CONVEX_CLI_LOGIN.md</a></td>
+<td><a href="/docs/convex-cli-login">docs/CONVEX_CLI_LOGIN.md</a></td>
 <td>Convex CLI login/logout and self-hosted env notes</td>
 </tr>
 <tr>
-<td><a href="docs/CONVEX_LOCAL_SETUP.md">docs/CONVEX_LOCAL_SETUP.md</a></td>
+<td><a href="/docs/convex-local-setup">docs/CONVEX_LOCAL_SETUP.md</a></td>
 <td>Self-hosted Convex (Docker) quick start and architecture</td>
 </tr>
 <tr>
-<td><a href="docs/AUTH_AND_ADMIN_SETUP.md">docs/AUTH_AND_ADMIN_SETUP.md</a></td>
-<td>Clerk + Convex auth and first-admin setup</td>
+<td><a href="/docs/auth-and-admin-setup">docs/AUTH_AND_ADMIN_SETUP.md</a></td>
+<td>Entra + Convex auth and first-admin setup</td>
 </tr>
 <tr>
-<td><a href="docs/INTEGRATION.md">docs/INTEGRATION.md</a></td>
+<td><a href="/docs/entra-auth-spike">docs/ENTRA_AUTH_SPIKE.md</a></td>
+<td>Clerk → Entra spike checklist</td>
+</tr>
+<tr>
+<td><a href="/docs/integration">docs/INTEGRATION.md</a></td>
 <td>Orchestrator API and hunt workflow integration</td>
 </tr>
 <tr>
-<td><a href="AGENTS.md">AGENTS.md</a></td>
+<td><a href="/docs/agents">AGENTS.md</a></td>
 <td>Notes for AI agents (Opportunities + Convex self-hosted vs cloud)</td>
 </tr>
 </tbody></table>

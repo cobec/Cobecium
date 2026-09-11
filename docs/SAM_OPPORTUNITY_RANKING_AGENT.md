@@ -3,7 +3,7 @@
 **Audience:** a fresh AI agent implementing or extending the system.  
 **Goal:** Embedding + preference-ranking feed for **federal contract opportunities**, mirroring [ResearchTbr](../../ResearchTbr/), seeded from **manual Databank CSV drops**.
 
-**Product context:** Cobecium / Lynx is a procurement hub for a **government subcontractor** (Cobec). Ranked feed is in Lynx at **`/opps`** (Clerk → Convex `samRank.ts` → SamRank `/api`). SamRank owns ranking/embeddings; do not reimplement embeddings inside Convex.
+**Product context:** Cobecium / Lynx is a procurement hub for a **government subcontractor** (Cobec). Ranked feed is in Lynx at **`/opps`** (Entra → Convex `samRank.ts` → SamRank `/api`). SamRank owns ranking/embeddings; do not reimplement embeddings inside Convex.
 
 **As-built integration (read this first):** [`OPPORTUNITIES_INTEGRATION.md`](./OPPORTUNITIES_INTEGRATION.md) — routes, Convex env, SamRank ports, Firecrawl enrich APIs, card UX.
 

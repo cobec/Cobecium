@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
+import { getExternalId } from "./lib/identity";
 
 /**
  * Helper: ensure the current user is authenticated and has role "admin".
@@ -12,40 +13,40 @@ export async function requireAdmin(
 ): Promise<Doc<"lynxUsers">> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
+  const externalId = getExternalId(identity);
   const user = await ctx.db
     .query("lynxUsers")
-    .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", identity.subject))
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
     .unique();
   if (!user || user.role !== "admin") throw new Error("Admin only");
   return user;
 }
 
 /**
- * Create or update the current user's lynxUsers row from Clerk identity.
- * If no admin exists and current user's Clerk ID matches LYNX_FIRST_ADMIN_CLERK_ID, set role to admin.
+ * Create or update the current user's lynxUsers row from Entra identity.
+ * If no admin exists and current user's oid matches LYNX_FIRST_ADMIN_OID, set role to admin.
  */
 export const ensureMe = mutation({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const clerkUserId = identity.subject;
+    const externalId = getExternalId(identity);
     const now = Date.now();
     const name = identity.name ?? undefined;
-    const email =
-      (identity.email as string | undefined) ?? undefined;
+    const email = (identity.email as string | undefined) ?? undefined;
 
     const existing = await ctx.db
       .query("lynxUsers")
-      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
       .unique();
 
-    const firstAdminClerkId = process.env.LYNX_FIRST_ADMIN_CLERK_ID;
-    const noAdminYet = firstAdminClerkId
+    const firstAdminOid = process.env.LYNX_FIRST_ADMIN_OID;
+    const noAdminYet = firstAdminOid
       ? (await ctx.db.query("lynxUsers").collect()).every((u) => u.role !== "admin")
       : false;
     const isFirstAdmin =
-      !!firstAdminClerkId && noAdminYet && clerkUserId === firstAdminClerkId;
+      !!firstAdminOid && noAdminYet && externalId === firstAdminOid;
     const role = isFirstAdmin ? ("admin" as const) : ("user" as const);
 
     if (existing) {
@@ -58,7 +59,7 @@ export const ensureMe = mutation({
       return existing._id;
     }
     return await ctx.db.insert("lynxUsers", {
-      clerkUserId,
+      externalId,
       name,
       email,
       role,
@@ -77,7 +78,9 @@ export const getMyRole = query({
     if (!identity) return null;
     const user = await ctx.db
       .query("lynxUsers")
-      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", identity.subject))
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", getExternalId(identity))
+      )
       .unique();
     return user ? { role: user.role } : null;
   },
@@ -93,7 +96,7 @@ export const listForAdmin = query({
     const users = await ctx.db.query("lynxUsers").collect();
     return users.map((u) => ({
       _id: u._id,
-      clerkUserId: u.clerkUserId,
+      externalId: u.externalId,
       name: u.name,
       email: u.email,
       role: u.role,
@@ -107,14 +110,14 @@ export const listForAdmin = query({
  */
 export const setRole = mutation({
   args: {
-    clerkUserId: v.string(),
+    externalId: v.string(),
     role: v.union(v.literal("admin"), v.literal("user")),
   },
-  handler: async (ctx, { clerkUserId, role }) => {
+  handler: async (ctx, { externalId, role }) => {
     await requireAdmin(ctx);
     const target = await ctx.db
       .query("lynxUsers")
-      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
       .unique();
     if (!target) throw new Error("User not found");
     if (role === "user") {

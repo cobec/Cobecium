@@ -3,6 +3,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { requireAdmin } from "./users";
+import { getExternalId } from "./lib/identity";
 
 type Ctx = QueryCtx | MutationCtx;
 
@@ -17,10 +18,10 @@ async function requireAdminOrCreator(
   feedbackDoc: Doc<"feedback">
 ): Promise<void> {
   const identity = await getIdentity(ctx);
-  if (feedbackDoc.clerkUserId === identity.subject) return;
+  if (feedbackDoc.externalId === getExternalId(identity)) return;
   const user = await ctx.db
     .query("lynxUsers")
-    .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", identity.subject))
+    .withIndex("by_externalId", (q) => q.eq("externalId", getExternalId(identity)))
     .unique();
   if (user?.role === "admin") return;
   throw new Error("Only the creator or an admin can perform this action");
@@ -56,7 +57,7 @@ export const submit = mutation({
     const name = identity.name ?? undefined;
     const email = (identity.email as string | undefined) ?? undefined;
     return await ctx.db.insert("feedback", {
-      clerkUserId: identity.subject,
+      externalId: getExternalId(identity),
       name,
       email,
       title: args.title.trim(),
@@ -84,14 +85,14 @@ export const list = query({
       const v = await ctx.db
         .query("feedbackVotes")
         .withIndex("by_feedback_user", (q) =>
-          q.eq("feedbackId", item._id).eq("clerkUserId", identity.subject)
+          q.eq("feedbackId", item._id).eq("externalId", getExternalId(identity))
         )
         .unique();
       if (v) myVotes[item._id] = v.value;
     }
     return items.map((doc) => ({
       _id: doc._id,
-      clerkUserId: doc.clerkUserId,
+      externalId: doc.externalId,
       name: doc.name,
       title: doc.title,
       description: doc.description,
@@ -114,20 +115,20 @@ export const get = query({
     const isAdmin = await (async () => {
       const user = await ctx.db
         .query("lynxUsers")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", identity.subject))
+        .withIndex("by_externalId", (q) => q.eq("externalId", getExternalId(identity)))
         .unique();
       return user?.role === "admin";
     })();
     const myVote = await ctx.db
       .query("feedbackVotes")
       .withIndex("by_feedback_user", (q) =>
-        q.eq("feedbackId", id).eq("clerkUserId", identity.subject)
+        q.eq("feedbackId", id).eq("externalId", getExternalId(identity))
       )
       .unique();
     const myImportance = await ctx.db
       .query("feedbackImportance")
       .withIndex("by_feedback_user", (q) =>
-        q.eq("feedbackId", id).eq("clerkUserId", identity.subject)
+        q.eq("feedbackId", id).eq("externalId", getExternalId(identity))
       )
       .unique();
     return {
@@ -135,7 +136,7 @@ export const get = query({
       adminNotes: isAdmin ? doc.adminNotes : undefined,
       myVote: myVote?.value ?? null,
       myImportance: myImportance?.rating ?? null,
-      isCreator: identity.subject === doc.clerkUserId,
+      isCreator: getExternalId(identity) === doc.externalId,
     };
   },
 });
@@ -152,7 +153,7 @@ export const vote = mutation({
     const existing = await ctx.db
       .query("feedbackVotes")
       .withIndex("by_feedback_user", (q) =>
-        q.eq("feedbackId", feedbackId).eq("clerkUserId", identity.subject)
+        q.eq("feedbackId", feedbackId).eq("externalId", getExternalId(identity))
       )
       .unique();
     let delta = 0;
@@ -169,7 +170,7 @@ export const vote = mutation({
       } else {
         await ctx.db.insert("feedbackVotes", {
           feedbackId,
-          clerkUserId: identity.subject,
+          externalId: getExternalId(identity),
           value,
         });
       }
@@ -192,7 +193,7 @@ export const rateImportance = mutation({
     const existing = await ctx.db
       .query("feedbackImportance")
       .withIndex("by_feedback_user", (q) =>
-        q.eq("feedbackId", feedbackId).eq("clerkUserId", identity.subject)
+        q.eq("feedbackId", feedbackId).eq("externalId", getExternalId(identity))
       )
       .unique();
     if (existing) {
@@ -200,7 +201,7 @@ export const rateImportance = mutation({
     } else {
       await ctx.db.insert("feedbackImportance", {
         feedbackId,
-        clerkUserId: identity.subject,
+        externalId: getExternalId(identity),
         rating,
       });
     }
@@ -270,13 +271,13 @@ export const listComments = query({
         const myVote = await ctx.db
           .query("commentVotes")
           .withIndex("by_comment_user", (q) =>
-            q.eq("commentId", c._id).eq("clerkUserId", identity.subject)
+            q.eq("commentId", c._id).eq("externalId", getExternalId(identity))
           )
           .unique();
         return {
           _id: c._id,
           feedbackId: c.feedbackId,
-          clerkUserId: c.clerkUserId,
+          externalId: c.externalId,
           name: c.name,
           body: c.body,
           createdAt: c.createdAt,
@@ -313,7 +314,7 @@ export const addComment = mutation({
     }
     const id = await ctx.db.insert("feedbackComments", {
       feedbackId,
-      clerkUserId: identity.subject,
+      externalId: getExternalId(identity),
       name,
       body: body.trim(),
       createdAt: Date.now(),
@@ -340,7 +341,7 @@ export const voteComment = mutation({
     const existing = await ctx.db
       .query("commentVotes")
       .withIndex("by_comment_user", (q) =>
-        q.eq("commentId", commentId).eq("clerkUserId", identity.subject)
+        q.eq("commentId", commentId).eq("externalId", getExternalId(identity))
       )
       .unique();
     let likeDelta = 0;
@@ -362,7 +363,7 @@ export const voteComment = mutation({
       } else {
         await ctx.db.insert("commentVotes", {
           commentId,
-          clerkUserId: identity.subject,
+          externalId: getExternalId(identity),
           value,
         });
       }
@@ -380,7 +381,7 @@ export const listMyFeedback = query({
     const identity = await getIdentity(ctx);
     return await ctx.db
       .query("feedback")
-      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", identity.subject))
+      .withIndex("by_externalId", (q) => q.eq("externalId", getExternalId(identity)))
       .order("desc")
       .collect();
   },
@@ -396,13 +397,13 @@ export const setSubscription = mutation({
     const existing = await ctx.db
       .query("feedbackSubscriptions")
       .withIndex("by_feedback_user", (q) =>
-        q.eq("feedbackId", feedbackId).eq("clerkUserId", identity.subject)
+        q.eq("feedbackId", feedbackId).eq("externalId", getExternalId(identity))
       )
       .unique();
     if (subscribed && !existing) {
       await ctx.db.insert("feedbackSubscriptions", {
         feedbackId,
-        clerkUserId: identity.subject,
+        externalId: getExternalId(identity),
         createdAt: Date.now(),
       });
     } else if (!subscribed && existing) {
@@ -418,7 +419,7 @@ export const getSubscription = query({
     const sub = await ctx.db
       .query("feedbackSubscriptions")
       .withIndex("by_feedback_user", (q) =>
-        q.eq("feedbackId", feedbackId).eq("clerkUserId", identity.subject)
+        q.eq("feedbackId", feedbackId).eq("externalId", getExternalId(identity))
       )
       .unique();
     return !!sub;

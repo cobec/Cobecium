@@ -21,7 +21,7 @@ The main experience is a **procurement links grid** (by state/city) with search;
 |-------|------------|
 | **Frontend** | React 18, React Router 7, Vite 6, TypeScript 5.6 |
 | **Styling** | Tailwind CSS 3, Radix UI (Dialog, Label, Slot), CVA, `clsx` / `tailwind-merge` |
-| **Auth** | Clerk (sign-in, sign-up, `UserButton`); identity synced to Convex |
+| **Auth** | Microsoft Entra ID (MSAL) → Convex JWT; identity synced to `lynxUsers.externalId` (oid) |
 | **Backend / DB** | Convex (queries, mutations, actions); self-hosted option via Docker |
 | **Runtime** | Bun or Node for scripts; `concurrently` for `vite` + `convex dev` |
 
@@ -31,9 +31,9 @@ Convex provides the API layer and persistence (`procurementLinks`, `chatSystemPr
 
 ## Architecture overview
 
-- **App (Vite)** – SPA on port 5173; `@/` alias points at `src/`. Uses `ClerkProvider` and `ConvexProviderWithClerk`; `useStoreUserEffect` syncs Clerk identity into Convex `lynxUsers`.
+- **App (Vite)** – SPA on port 5173; `@/` alias points at `src/`. Uses `MsalProvider` + `ConvexProviderWithAuth`; `useStoreUserEffect` syncs Entra identity into Convex `lynxUsers`.
 - **Convex** – Backend can run in Convex Cloud or **self-hosted** (Docker: backend + dashboard + app container that runs `convex dev` + Vite). See `docs/CONVEX_LOCAL_SETUP.md`.
-- **Routes** – `/` / `/app` = Procurement grid; `/opps` (+ `/approved`, `/status`) = federal Opportunities feed (Clerk + SamRank); `/system-prompts`, `/analytics`, `/admin` are admin-only (guarded by `AdminOnlyRoute` and Convex `requireAdmin`). Style demos live at `/1`–`/10`.
+- **Routes** – `/` / `/app` = Procurement grid; `/opps` (+ `/approved`, `/status`) = federal Opportunities feed (Entra + SamRank); `/system-prompts`, `/analytics`, `/admin` are admin-only (guarded by `AdminOnlyRoute` and Convex `requireAdmin`). Style demos live at `/1`–`/10`.
 - **Data flow** – Grid reads `api.procurementLinks.list` and `api.systemPrompts.list`; Opportunities reads Convex `api.samRank.*` actions that proxy SamRank `:5190`. Admins can import JSON, add/edit links, and edit prompts. “Start Hunt” uses `api.orchestrator.createWorkflow` (and related actions) and opens `HuntChatModal` to poll workflow status.
 - **Orchestrator docs sync** – Convex can fetch and hash the Orchestrator API docs; the header shows an indicator when stored docs have changed. See `convex/orchestratorDocsSync.ts` and env vars in `docs/CONVEX_LOCAL_SETUP.md`.
 
@@ -43,7 +43,7 @@ Convex provides the API layer and persistence (`procurementLinks`, `chatSystemPr
 
 - **Path alias** – Use `@/` for `src/` (e.g. `@/components/LynxHeader`, `@/lib/utils`). Configured in `tsconfig.json` and `vite.config.ts`.
 - **Convex** – Backend lives in `convex/`. Do not edit `convex/_generated/*` by hand. For self-hosted, do not set `CONVEX_DEPLOYMENT` when using `CONVEX_SELF_HOSTED_*`; see [AGENTS.md](AGENTS.md) and [docs/CONVEX_CLI_LOGIN.md](docs/CONVEX_CLI_LOGIN.md).
-- **Auth and roles** – Convex validates Clerk JWTs via `auth.config.ts`. Roles (`admin` / `user`) live in `lynxUsers`; first admin can be bootstrapped with `LYNX_FIRST_ADMIN_CLERK_ID`. See [docs/AUTH_AND_ADMIN_SETUP.md](docs/AUTH_AND_ADMIN_SETUP.md).
+- **Auth and roles** – Convex validates Entra ID tokens via `auth.config.ts`. Roles (`admin` / `user`) live in `lynxUsers`; first admin can be bootstrapped with `LYNX_FIRST_ADMIN_OID`. See [docs/AUTH_AND_ADMIN_SETUP.md](docs/AUTH_AND_ADMIN_SETUP.md) and [docs/ENTRA_AUTH_SPIKE.md](docs/ENTRA_AUTH_SPIKE.md).
 - **UI** – Shared components under `src/components/` (including `ui/` for primitives). Prefer Tailwind and existing design tokens (e.g. `primary`, `accent`, `--base-orange`, `--base-teal`). Style-demo pages are isolated under `src/pages/Style*Page.tsx` and `StylePath10Page.tsx`.
 - **Strict TypeScript** – `strict`, `noUnusedLocals`, `noUnusedParameters`, `noUncheckedIndexedAccess` in `tsconfig.json`. Convex types come from `convex/_generated`.
 - **Scripts** – `bun run dev` (or `npm run dev`) runs Vite and Convex dev concurrently. Build: `bun run build`; preview: `bun run preview`.
@@ -58,6 +58,8 @@ Convex provides the API layer and persistence (`procurementLinks`, `chatSystemPr
 | [docs/SAM_OPPORTUNITY_RANKING_AGENT.md](docs/SAM_OPPORTUNITY_RANKING_AGENT.md) | CSV → embed → rank agent brief |
 | [docs/CONVEX_CLI_LOGIN.md](docs/CONVEX_CLI_LOGIN.md) | Convex CLI login/logout and self-hosted env notes |
 | [docs/CONVEX_LOCAL_SETUP.md](docs/CONVEX_LOCAL_SETUP.md) | Self-hosted Convex (Docker) quick start and architecture |
-| [docs/AUTH_AND_ADMIN_SETUP.md](docs/AUTH_AND_ADMIN_SETUP.md) | Clerk + Convex auth and first-admin setup |
+| [docs/AUTH_AND_ADMIN_SETUP.md](docs/AUTH_AND_ADMIN_SETUP.md) | Entra + Convex auth and first-admin setup |
+| [docs/ENTRA_AUTH_SPIKE.md](docs/ENTRA_AUTH_SPIKE.md) | Clerk → Entra spike checklist |
+| In-app **`/docs`** | HTML docs (regenerate with `bun run docs:html`) |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | Orchestrator API and hunt workflow integration |
 | [AGENTS.md](AGENTS.md) | Notes for AI agents (Opportunities + Convex self-hosted vs cloud) |

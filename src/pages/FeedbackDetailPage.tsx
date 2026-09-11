@@ -53,14 +53,14 @@ const IMPORTANCE_OPTIONS = [
   { value: "essential" as const, label: "Essential", color: "bg-green-500/20 text-green-700 dark:text-green-300" },
 ];
 
-function avatarLetter(name: string | undefined, clerkUserId: string): string {
+function avatarLetter(name: string | undefined, externalId: string): string {
   if (name && name.trim()) return name.trim().slice(0, 1).toUpperCase();
-  return clerkUserId.slice(-1).toUpperCase();
+  return externalId.slice(-1).toUpperCase();
 }
 
-function avatarColor(clerkUserId: string): string {
+function avatarColor(externalId: string): string {
   let h = 0;
-  for (let i = 0; i < clerkUserId.length; i++) h = (h << 5) - h + clerkUserId.charCodeAt(i);
+  for (let i = 0; i < externalId.length; i++) h = (h << 5) - h + externalId.charCodeAt(i);
   const hue = Math.abs(h % 360);
   return `hsl(${hue}, 55%, 45%)`;
 }
@@ -524,7 +524,7 @@ export function FeedbackDetailPage() {
 type CommentLike = {
   _id: Id<"feedbackComments">;
   parentId?: Id<"feedbackComments">;
-  clerkUserId: string;
+  externalId: string;
   name?: string;
   body: string;
   createdAt: number;
@@ -565,10 +565,10 @@ function CommentBlock({
       <div className="flex gap-3">
         <div
           className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white"
-          style={{ backgroundColor: avatarColor(comment.clerkUserId) }}
+          style={{ backgroundColor: avatarColor(comment.externalId) }}
           aria-hidden
         >
-          {avatarLetter(comment.name, comment.clerkUserId)}
+          {avatarLetter(comment.name, comment.externalId)}
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-foreground">{comment.name ?? "Anonymous"}</p>
@@ -643,9 +643,9 @@ function CommentBlock({
                   <div className="flex gap-2">
                     <div
                       className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
-                      style={{ backgroundColor: avatarColor(r.clerkUserId) }}
+                      style={{ backgroundColor: avatarColor(r.externalId) }}
                     >
-                      {avatarLetter(r.name, r.clerkUserId)}
+                      {avatarLetter(r.name, r.externalId)}
                     </div>
                     <div>
                       <p className="font-semibold text-sm">{r.name ?? "Anonymous"}</p>

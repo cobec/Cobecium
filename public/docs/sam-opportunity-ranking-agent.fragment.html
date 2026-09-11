@@ -1,7 +1,7 @@
 <h1>Agent brief: SAM opportunity embed + rank (ResearchTBR pattern)</h1>
 <p><strong>Audience:</strong> a fresh AI agent implementing or extending the system.<br><strong>Goal:</strong> Embedding + preference-ranking feed for <strong>federal contract opportunities</strong>, mirroring <a href="../../ResearchTbr/">ResearchTbr</a>, seeded from <strong>manual Databank CSV drops</strong>.</p>
-<p><strong>Product context:</strong> Cobecium / Lynx is a procurement hub for a <strong>government subcontractor</strong> (Cobec). Ranked feed is in Lynx at <strong><code>/opps</code></strong> (Clerk → Convex <code>samRank.ts</code> → SamRank <code>/api</code>). SamRank owns ranking/embeddings; do not reimplement embeddings inside Convex.</p>
-<p><strong>As-built integration (read this first):</strong> <a href="./OPPORTUNITIES_INTEGRATION.md"><code>OPPORTUNITIES_INTEGRATION.md</code></a> — routes, Convex env, SamRank ports, Firecrawl enrich APIs, card UX.</p>
+<p><strong>Product context:</strong> Cobecium / Lynx is a procurement hub for a <strong>government subcontractor</strong> (Cobec). Ranked feed is in Lynx at <strong><code>/opps</code></strong> (Entra → Convex <code>samRank.ts</code> → SamRank <code>/api</code>). SamRank owns ranking/embeddings; do not reimplement embeddings inside Convex.</p>
+<p><strong>As-built integration (read this first):</strong> <a href="/docs/opportunities-integration"><code>OPPORTUNITIES_INTEGRATION.md</code></a> — routes, Convex env, SamRank ports, Firecrawl enrich APIs, card UX.</p>
 <hr>
 <h2>Non-goals (do not do)</h2>
 <ul>
@@ -10,7 +10,7 @@
 <li>Do <strong>not</strong> remount LM Studio embedding models on every row (see ResearchTBR <code>LmStudioModelGuard</code>).</li>
 <li>Do <strong>not</strong> re-embed inside Convex.</li>
 </ul>
-<p><strong>Allowed enrichment (as-built):</strong> After CSV ingest, SamRank may use <strong>self-hosted Firecrawl</strong> against <strong>public</strong> SAM.gov search/detail pages to resolve workspace detail URLs and full description text. That is separate from Databank scraping and does not use a SAM Public API key. See <a href="./OPPORTUNITIES_INTEGRATION.md#samgov-link--description-enrichment"><code>OPPORTUNITIES_INTEGRATION.md</code></a>.</p>
+<p><strong>Allowed enrichment (as-built):</strong> After CSV ingest, SamRank may use <strong>self-hosted Firecrawl</strong> against <strong>public</strong> SAM.gov search/detail pages to resolve workspace detail URLs and full description text. That is separate from Databank scraping and does not use a SAM Public API key. See <a href="/docs/opportunities-integration#samgov-link--description-enrichment"><code>OPPORTUNITIES_INTEGRATION.md</code></a>.</p>
 <hr>
 <h2>Data source: <code>samoutput/</code></h2>
 <table>
@@ -356,13 +356,13 @@ PoP: {City}, {State} {Zip}
 <li>Feed shows top-ranked unvoted items; Yes/No updates ranking.  </li>
 <li>Semantic search works.  </li>
 <li>Lynx <code>/opps</code> works for signed-in users via Convex → SamRank.  </li>
-<li>Link/description Firecrawl enrichment can fix search URLs and truncated CSV text (POC: ~1932/1969 detail URLs; residual failures documented in <a href="./OPPORTUNITIES_INTEGRATION.md#poc-enrich-results-corpus-1969-notices-jul-2026"><code>OPPORTUNITIES_INTEGRATION.md</code></a>).  </li>
+<li>Link/description Firecrawl enrichment can fix search URLs and truncated CSV text (POC: ~1932/1969 detail URLs; residual failures documented in <a href="/docs/opportunities-integration#poc-enrich-results-corpus-1969-notices-jul-2026"><code>OPPORTUNITIES_INTEGRATION.md</code></a>).  </li>
 <li>SamRank skill documents themes, blend, and vote learning.</li>
 </ol>
 <hr>
 <h2>Related docs</h2>
 <ul>
-<li><strong>Integration (Lynx wiring):</strong> <a href="./OPPORTUNITIES_INTEGRATION.md"><code>OPPORTUNITIES_INTEGRATION.md</code></a>  </li>
+<li><strong>Integration (Lynx wiring):</strong> <a href="/docs/opportunities-integration"><code>OPPORTUNITIES_INTEGRATION.md</code></a>  </li>
 <li>Cobecium docs UI: <code>/docs</code> on Lynx  </li>
 <li>SamOpps (optional API): <code>/home/jmartinez/Projects/SamOpps/docs/POLICY.md</code></li>
 </ul>

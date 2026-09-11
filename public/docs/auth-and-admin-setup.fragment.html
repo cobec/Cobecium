@@ -1,0 +1,83 @@
+<h1>Auth and admin setup (Microsoft Entra ID + Convex)</h1>
+<p>Lynx uses <strong>Microsoft Entra ID</strong> for sign-in and <strong>Convex</strong> for identity and roles.
+The Convex backend validates Entra ID tokens and stores users in <code>lynxUsers</code> with
+<code>externalId</code> (Entra <strong>oid</strong>) and <code>role</code> (<code>&quot;admin&quot;</code> | <code>&quot;user&quot;</code>).</p>
+<blockquote>
+<p><strong>Hosting:</strong> Public Netlify hosting is paused. Run locally / on cobec-spark
+(<code>bun run dev</code> / Docker). Clerk has been removed.</p>
+</blockquote>
+<h2>Environment variables</h2>
+<h3>Frontend (Vite / <code>.env</code> / <code>.env.local</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>VITE_ENTRA_CLIENT_ID</code></td>
+<td>SPA Application (client) ID from Entra app registration</td>
+</tr>
+<tr>
+<td><code>VITE_ENTRA_TENANT_ID</code></td>
+<td>Directory (tenant) ID — use the real GUID (not <code>common</code>) so JWT <code>iss</code> matches Convex</td>
+</tr>
+<tr>
+<td><code>VITE_ENTRA_REDIRECT_URI</code></td>
+<td>Optional; defaults to <code>window.location.origin</code></td>
+</tr>
+<tr>
+<td><code>VITE_CONVEX_URL</code></td>
+<td>Convex deployment URL</td>
+</tr>
+</tbody></table>
+<h3>Convex backend (<code>bunx convex env set …</code> / dashboard)</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ENTRA_CLIENT_ID</code></td>
+<td>Same SPA client ID — must equal JWT <code>aud</code></td>
+</tr>
+<tr>
+<td><code>ENTRA_TENANT_ID</code></td>
+<td>Same tenant GUID — builds issuer + JWKS URLs</td>
+</tr>
+<tr>
+<td><code>LYNX_FIRST_ADMIN_OID</code></td>
+<td>Optional; Entra object ID (<code>oid</code>) of the first admin</td>
+</tr>
+</tbody></table>
+<pre><code class="language-bash"># Self-hosted example (from app container / repo with Convex CLI wired):
+bunx convex env set ENTRA_TENANT_ID &#39;&lt;directory-id&gt;&#39;
+bunx convex env set ENTRA_CLIENT_ID &#39;&lt;application-id&gt;&#39;
+bunx convex env set LYNX_FIRST_ADMIN_OID &#39;&lt;your-oid&gt;&#39;
+</code></pre>
+<h2>Entra app registration (spike checklist)</h2>
+<ol>
+<li>Azure Portal → <strong>Microsoft Entra ID</strong> → <strong>App registrations</strong> → <strong>New registration</strong></li>
+<li>Name e.g. <code>Lynx Cobecium SPA</code>; single tenant</li>
+<li>Platform: <strong>Single-page application (SPA)</strong></li>
+<li>Redirect URIs: <code>http://localhost:5173</code> (Vite), plus cobec-spark origin if used</li>
+<li><strong>Token configuration</strong>: ensure ID token optional claims include <strong><code>oid</code></strong>, <code>email</code>, <code>preferred_username</code> (or profile) as needed</li>
+<li>Copy <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong> into Vite + Convex env</li>
+</ol>
+<h2>First admin</h2>
+<ol>
+<li>Sign in once, decode the ID token (jwt.io) and copy the <strong><code>oid</code></strong> claim — or read it from Azure → Users → Object ID</li>
+<li>Set <code>LYNX_FIRST_ADMIN_OID</code> to that value</li>
+<li>Clear any leftover Clerk-era <code>lynxUsers</code> rows (schema field is now <code>externalId</code>)</li>
+<li>Sign in again so <code>ensureMe</code> promotes you to admin</li>
+</ol>
+<h2>Identity key</h2>
+<p>Always store <strong>Entra <code>oid</code></strong>, not JWT <code>sub</code> (pairwise). Helper: <code>convex/lib/identity.ts</code> → <code>getExternalId</code>.
+SamRank receives the same value as <code>externalId</code>.</p>
+<h2>Admin-only features</h2>
+<p>Unchanged: <code>/admin</code>, <code>/analytics</code>, <code>/system-prompts</code> via <code>AdminOnlyRoute</code>; header links when <code>getMyRole</code> is admin.</p>
+<h2>Spike verification</h2>
+<p>See <a href="/docs/entra-auth-spike">ENTRA_AUTH_SPIKE.md</a>.</p>

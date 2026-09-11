@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { SignInButton, SignUpButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
+import { EntraSignInButton } from "@/auth/EntraAuthButtons";
 
 const valueBlocks = [
   {
@@ -49,16 +49,12 @@ export function LandingPage() {
             Lynx
           </span>
           <div className="flex items-center gap-2">
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="sm" className="uppercase font-semibold text-muted-foreground hover:text-foreground">
+            <EntraSignInButton><Button variant="ghost" size="sm" className="uppercase font-semibold text-muted-foreground hover:text-foreground">
                 Sign in
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button size="sm" className="uppercase font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+              </Button></EntraSignInButton>
+            <EntraSignInButton><Button size="sm" className="uppercase font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                 Get started
-              </Button>
-            </SignUpButton>
+              </Button></EntraSignInButton>
           </div>
         </header>
 
@@ -77,11 +73,9 @@ export function LandingPage() {
             Lynx gives your team a single hub to browse and search official procurement links—so researchers, business developers, and proposal teams can find opportunities without the chaos.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <SignUpButton mode="modal">
-              <Button size="lg" className="uppercase font-bold text-base px-8 rounded-none border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90">
+            <EntraSignInButton><Button size="lg" className="uppercase font-bold text-base px-8 rounded-none border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90">
                 Get started
-              </Button>
-            </SignUpButton>
+              </Button></EntraSignInButton>
             <Link to="/app">
               <Button
                 size="lg"
@@ -157,11 +151,9 @@ export function LandingPage() {
           style={{ animation: "fade-in 0.5s ease-out 0.85s forwards" }}
         >
           <p className="text-muted-foreground mb-4">Already have an account?</p>
-          <SignInButton mode="modal">
-            <Button variant="outline" size="sm" className="uppercase font-semibold">
+          <EntraSignInButton><Button variant="outline" size="sm" className="uppercase font-semibold">
               Sign in
-            </Button>
-          </SignInButton>
+            </Button></EntraSignInButton>
         </section>
       </div>
     </div>

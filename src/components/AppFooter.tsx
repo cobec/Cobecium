@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 /**
- * Global app footer: attribution and "Powered By" (Convex, Netlify, Clerk).
+ * Global app footer: attribution and "Powered By" (Convex + Microsoft Entra ID).
  * Matches the app's dark theme, teal accent, and Syne typography.
  */
 export function AppFooter() {
@@ -63,28 +63,6 @@ export function AppFooter() {
                 className="hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-sm"
               >
                 Convex
-              </a>
-            </li>
-            <li aria-hidden className="text-accent/50">·</li>
-            <li>
-              <a
-                href="https://www.netlify.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-sm"
-              >
-                Netlify
-              </a>
-            </li>
-            <li aria-hidden className="text-accent/50">·</li>
-            <li>
-              <a
-                href="https://clerk.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-sm"
-              >
-                Clerk
               </a>
             </li>
           </ul>

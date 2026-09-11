@@ -2,7 +2,7 @@
 <p>This file captures project-specific gotchas and learnings so agents (and humans) can avoid repeating the same failures.</p>
 <hr>
 <h2>SAM opportunity ranking (CSV → embed → rank → Lynx <code>/opps</code>)</h2>
-<p>Manual Databank CSV drops live in <code>samoutput/</code>. Ranking engine: sibling <strong>SamRank</strong> (<code>.NET</code>, <code>:5190</code>). Lynx product UI: <strong><code>/opps</code></strong> (Clerk-authenticated), via Convex actions in <code>convex/samRank.ts</code>.</p>
+<p>Manual Databank CSV drops live in <code>samoutput/</code>. Ranking engine: sibling <strong>SamRank</strong> (<code>.NET</code>, <code>:5190</code>). Lynx product UI: <strong><code>/opps</code></strong> (Entra-authenticated), via Convex actions in <code>convex/samRank.ts</code>.</p>
 <table>
 <thead>
 <tr>
@@ -11,22 +11,23 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong><a href="docs/OPPORTUNITIES_INTEGRATION.md"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a></strong></td>
+<td><strong><a href="/docs/opportunities-integration"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a></strong></td>
 <td><strong>As-built Lynx ↔ SamRank wiring</strong> (routes, env, enrich APIs, card UX)</td>
 </tr>
 <tr>
-<td><a href="docs/SAM_OPPORTUNITY_RANKING_AGENT.md"><code>docs/SAM_OPPORTUNITY_RANKING_AGENT.md</code></a></td>
+<td><a href="/docs/sam-opportunity-ranking-agent"><code>docs/SAM_OPPORTUNITY_RANKING_AGENT.md</code></a></td>
 <td>Ranking/ingest agent brief (also <code>/docs/...</code> after <code>bun run docs:html</code>)</td>
 </tr>
 </tbody></table>
 <p><strong>Split of responsibility</strong></p>
 <ul>
 <li><strong>SamRank:</strong> CSV ingest, embeddings (LM Studio), team ranking overlay, preference learning, HTTP <code>/api/*</code>, Firecrawl link/description enrichment</li>
-<li><strong>Cobecium/Lynx:</strong> Clerk auth, <code>/opps</code> feed · approved · status UI, <code>SAMRANK_BASE_URL</code> Convex env</li>
+<li><strong>Cobecium/Lynx:</strong> Entra auth, <code>/opps</code> feed · approved · status UI, <code>SAMRANK_BASE_URL</code> Convex env</li>
 </ul>
 <p>Set <code>SAMRANK_BASE_URL=http://cobec-spark:5190</code> (and optional <code>SAMRANK_DEFAULT_TEAM_ID=cobec</code>) in Convex env before using Opportunities.</p>
 <p>Corpus membership comes from CSVs. Public SAM.gov detail URLs/full descriptions are optional Firecrawl enrich jobs on SamRank — do not restart SamRank mid-enrich unless necessary.</p>
-<p><strong>POC enrich outcome (~1969 notices):</strong> ~1932 detail URLs; <strong>37</strong> link fails (<code>no detail link in search results</code>, mostly inactive/legacy); description job ~1722 updated / <strong>209</strong> extract fails. Details and reconcile commands: <a href="docs/OPPORTUNITIES_INTEGRATION.md#poc-enrich-results-corpus-1969-notices-jul-2026"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a>. Failure log: <code>SamRank/Data/enrichment-failures.jsonl</code>.</p>
+<p><strong>POC enrich outcome (~1969 notices):</strong> ~1932 detail URLs; <strong>37</strong> link fails (<code>no detail link in search results</code>, mostly inactive/legacy); description job ~1722 updated / <strong>209</strong> extract fails. Details and reconcile commands: <a href="/docs/opportunities-integration#poc-enrich-results-corpus-1969-notices-jul-2026"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a>. Failure log: <code>SamRank/Data/enrichment-failures.jsonl</code>.</p>
+<p><strong>Prod seed:</strong> export enriched corpus from Lynx <strong>Opportunities → Status</strong> (or <code>GET /api/export/corpus</code>) — not legacy Databank CSVs. See <a href="/docs/opportunities-integration#export-enriched-corpus-prod-seed"><code>docs/OPPORTUNITIES_INTEGRATION.md</code></a>.</p>
 <hr>
 <h2>Convex CLI: self-hosted vs cloud env conflict</h2>
 <p>This repo uses <strong>Convex self-hosted</strong> (Docker backend). The Convex CLI enforces that you are either in “cloud” mode or “self-hosted” mode, not both.</p>

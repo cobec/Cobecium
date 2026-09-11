@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { SignInButton, SignUpButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
+import { EntraSignInButton } from "@/auth/EntraAuthButtons";
 
 export function LandingV2() {
   return (
@@ -33,16 +33,12 @@ export function LandingV2() {
       <header className="relative z-20 flex items-center justify-between px-5 sm:px-8 pt-6 pb-4">
         <span className="v2-body text-xl font-bold uppercase tracking-tight">Lynx</span>
         <div className="flex items-center gap-2">
-          <SignInButton mode="modal">
-            <Button variant="ghost" size="sm" className="v2-body uppercase text-xs font-semibold tracking-wider text-[var(--base-muted)] hover:text-[var(--base-text)]">
+          <EntraSignInButton><Button variant="ghost" size="sm" className="v2-body uppercase text-xs font-semibold tracking-wider text-[var(--base-muted)] hover:text-[var(--base-text)]">
               Sign in
-            </Button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <Button size="sm" className="v2-body uppercase text-xs font-bold tracking-wider bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-full px-5">
+            </Button></EntraSignInButton>
+          <EntraSignInButton><Button size="sm" className="v2-body uppercase text-xs font-bold tracking-wider bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-full px-5">
               Get started
-            </Button>
-          </SignUpButton>
+            </Button></EntraSignInButton>
         </div>
       </header>
 
@@ -102,11 +98,9 @@ export function LandingV2() {
               Ready to simplify procurement research?
             </p>
             <div className="flex flex-col gap-2">
-              <SignUpButton mode="modal">
-                <Button className="v2-body w-full uppercase font-bold text-sm rounded-full bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] py-5">
+              <EntraSignInButton><Button className="v2-body w-full uppercase font-bold text-sm rounded-full bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] py-5">
                   Get started free
-                </Button>
-              </SignUpButton>
+                </Button></EntraSignInButton>
               <Link to="/app">
                 <Button variant="outline" className="v2-body w-full uppercase font-bold text-sm rounded-full border-[var(--base-teal)] text-[var(--base-teal)] hover:bg-[var(--base-teal)] hover:text-[var(--base-bg)] py-5">
                   Explore app
@@ -318,11 +312,9 @@ export function LandingV2() {
             }}
           >
             <span className="v2-body text-sm text-[var(--base-muted)]">Have an account?</span>
-            <SignInButton mode="modal">
-              <Button variant="outline" size="sm" className="v2-body uppercase text-xs font-semibold rounded-full border-[var(--base-muted)]/30 hover:border-[var(--base-text)] px-5">
+            <EntraSignInButton><Button variant="outline" size="sm" className="v2-body uppercase text-xs font-semibold rounded-full border-[var(--base-muted)]/30 hover:border-[var(--base-text)] px-5">
                 Sign in
-              </Button>
-            </SignInButton>
+              </Button></EntraSignInButton>
           </div>
         </div>
       </div>

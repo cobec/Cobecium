@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { SignInButton, SignUpButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
+import { EntraSignInButton } from "@/auth/EntraAuthButtons";
 
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -119,16 +119,12 @@ export function LandingV1() {
         <header className="relative z-10 flex items-center justify-between pt-8 pb-4">
           <span className="v1-sans text-xl font-extrabold uppercase tracking-tight">Lynx</span>
           <div className="flex items-center gap-3">
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="sm" className="v1-sans uppercase text-xs font-semibold tracking-wider text-[var(--base-muted)] hover:text-[var(--base-text)]">
+            <EntraSignInButton><Button variant="ghost" size="sm" className="v1-sans uppercase text-xs font-semibold tracking-wider text-[var(--base-muted)] hover:text-[var(--base-text)]">
                 Sign in
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button size="sm" className="v1-sans uppercase text-xs font-semibold tracking-wider bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-5">
+              </Button></EntraSignInButton>
+            <EntraSignInButton><Button size="sm" className="v1-sans uppercase text-xs font-semibold tracking-wider bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-[var(--base-orange-hover)] rounded-none px-5">
                 Get started
-              </Button>
-            </SignUpButton>
+              </Button></EntraSignInButton>
           </div>
         </header>
 
@@ -169,11 +165,9 @@ export function LandingV1() {
             className="mt-10 flex flex-wrap gap-4 opacity-0"
             style={{ animation: heroReveal.visible ? "v1-rise 0.7s cubic-bezier(0.16,1,0.3,1) 0.7s forwards" : "none" }}
           >
-            <SignUpButton mode="modal">
-              <Button size="lg" className="v1-sans uppercase font-bold text-sm px-10 py-6 rounded-none border-2 border-[var(--base-orange)] bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-transparent hover:text-[var(--base-orange)] transition-colors duration-300">
+            <EntraSignInButton><Button size="lg" className="v1-sans uppercase font-bold text-sm px-10 py-6 rounded-none border-2 border-[var(--base-orange)] bg-[var(--base-orange)] text-[var(--base-bg)] hover:bg-transparent hover:text-[var(--base-orange)] transition-colors duration-300">
                 Get started
-              </Button>
-            </SignUpButton>
+              </Button></EntraSignInButton>
             <Link to="/app">
               <Button size="lg" variant="outline" className="v1-sans uppercase font-bold text-sm px-10 py-6 rounded-none border-2 border-[var(--base-teal)] text-[var(--base-teal)] hover:bg-[var(--base-teal)] hover:text-[var(--base-bg)] transition-colors duration-300">
                 Explore app
@@ -317,11 +311,9 @@ export function LandingV1() {
           }}
         />
         <p className="v1-sans text-[var(--base-muted)] text-lg mb-3">Already have an account?</p>
-        <SignInButton mode="modal">
-          <Button variant="outline" className="v1-sans uppercase font-semibold text-sm rounded-none border-2 border-[var(--base-muted)]/40 hover:border-[var(--base-text)] px-8 py-5 transition-colors duration-300">
+        <EntraSignInButton><Button variant="outline" className="v1-sans uppercase font-semibold text-sm rounded-none border-2 border-[var(--base-muted)]/40 hover:border-[var(--base-text)] px-8 py-5 transition-colors duration-300">
             Sign in
-          </Button>
-        </SignInButton>
+          </Button></EntraSignInButton>
       </section>
     </div>
   );

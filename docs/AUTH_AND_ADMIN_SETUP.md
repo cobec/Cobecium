@@ -1,43 +1,63 @@
-# Auth and admin setup (Clerk + Convex)
+# Auth and admin setup (Microsoft Entra ID + Convex)
 
-Lynx uses **Clerk** for sign-in and **Convex** for identity and roles. The Convex backend validates Clerk JWTs and stores users in the `lynxUsers` table with a `role` (`"admin"` or `"user"`).
+Lynx uses **Microsoft Entra ID** for sign-in and **Convex** for identity and roles.
+The Convex backend validates Entra ID tokens and stores users in `lynxUsers` with
+`externalId` (Entra **oid**) and `role` (`"admin"` | `"user"`).
+
+> **Hosting:** Public Netlify hosting is paused. Run locally / on cobec-spark
+> (`bun run dev` / Docker). Clerk has been removed.
 
 ## Environment variables
 
 ### Frontend (Vite / `.env` / `.env.local`)
 
-- **`VITE_CLERK_PUBLISHABLE_KEY`** – From [Clerk Dashboard → API Keys](https://dashboard.clerk.com/~/api-keys) (React / Publishable key).
+| Variable | Purpose |
+|----------|---------|
+| `VITE_ENTRA_CLIENT_ID` | SPA Application (client) ID from Entra app registration |
+| `VITE_ENTRA_TENANT_ID` | Directory (tenant) ID — use the real GUID (not `common`) so JWT `iss` matches Convex |
+| `VITE_ENTRA_REDIRECT_URI` | Optional; defaults to `window.location.origin` |
+| `VITE_CONVEX_URL` | Convex deployment URL |
 
-### Convex (Dashboard only for Convex Cloud)
+### Convex backend (`bunx convex env set …` / dashboard)
 
-The Convex **backend** does not read `.env` or `.env.local`. It only uses variables set in the **Convex Dashboard** for the deployment you’re pushing to. If you see “Environment variable CLERK_JWT_ISSUER_DOMAIN is used in auth config file but its value was not set”:
+| Variable | Purpose |
+|----------|---------|
+| `ENTRA_CLIENT_ID` | Same SPA client ID — must equal JWT `aud` |
+| `ENTRA_TENANT_ID` | Same tenant GUID — builds issuer + JWKS URLs |
+| `LYNX_FIRST_ADMIN_OID` | Optional; Entra object ID (`oid`) of the first admin |
 
-1. Open your deployment’s **Settings → Environment variables** in the [Convex Dashboard](https://dashboard.convex.dev).
-2. Ensure you’re on the **same deployment** (and branch) that `convex dev` uses (e.g. **Development** for your dev deployment). Development and Production often have separate env var lists.
-3. Add `CLERK_JWT_ISSUER_DOMAIN` with your Clerk Frontend API URL (see format below), save, then run `npx convex dev` again.
+```bash
+# Self-hosted example (from app container / repo with Convex CLI wired):
+bunx convex env set ENTRA_TENANT_ID '<directory-id>'
+bunx convex env set ENTRA_CLIENT_ID '<application-id>'
+bunx convex env set LYNX_FIRST_ADMIN_OID '<your-oid>'
+```
 
-Set these in the **Convex dashboard** (Settings → Environment Variables):
+## Entra app registration (spike checklist)
 
-- **`CLERK_JWT_ISSUER_DOMAIN`** – Clerk Frontend API URL (JWT issuer).
-  - **Development:** `https://<your-tenant>.clerk.accounts.dev` (replace `<your-tenant>` with the value from Clerk Dashboard).
-  - **Production:** `https://clerk.<your-domain>.com` if you use a custom domain.
-  - You can copy this from the Clerk Dashboard (API Keys or Configure → Paths).
-
-- **`LYNX_FIRST_ADMIN_CLERK_ID`** *(optional)* – Clerk user ID of the first admin. When the app has **no** admin yet and the signing-in user’s ID matches this value, `ensureMe` will set their role to `"admin"`.  
-  - **How to get the Clerk user ID:** In [Clerk Dashboard → Users](https://dashboard.clerk.com/~/users), open a user and copy the **User ID** (e.g. `user_2abc...`). Or temporarily log `identity.subject` in the app (e.g. in a debug component that calls `useUser()` from Clerk and displays the id).
-
-After adding or changing these, run `npx convex dev` or `npx convex deploy` so the Convex backend picks them up.
+1. Azure Portal → **Microsoft Entra ID** → **App registrations** → **New registration**
+2. Name e.g. `Lynx Cobecium SPA`; single tenant
+3. Platform: **Single-page application (SPA)**
+4. Redirect URIs: `http://localhost:5173` (Vite), plus cobec-spark origin if used
+5. **Token configuration**: ensure ID token optional claims include **`oid`**, `email`, `preferred_username` (or profile) as needed
+6. Copy **Application (client) ID** and **Directory (tenant) ID** into Vite + Convex env
 
 ## First admin
 
-1. Set `LYNX_FIRST_ADMIN_CLERK_ID` in Convex to your Clerk user ID.
-2. Sign in with that Clerk account and open the app so `ensureMe` runs (it runs automatically when authenticated).
-3. That user will get `role: "admin"` and can open **Admin** and **Analytics**, and can elevate/demote other users.
+1. Sign in once, decode the ID token (jwt.io) and copy the **`oid`** claim — or read it from Azure → Users → Object ID
+2. Set `LYNX_FIRST_ADMIN_OID` to that value
+3. Clear any leftover Clerk-era `lynxUsers` rows (schema field is now `externalId`)
+4. Sign in again so `ensureMe` promotes you to admin
 
-If you don’t set `LYNX_FIRST_ADMIN_CLERK_ID`, you can still create the first admin by inserting or updating a row in the `lynxUsers` table in the Convex dashboard (set `role` to `"admin"` for the desired `clerkUserId`).
+## Identity key
+
+Always store **Entra `oid`**, not JWT `sub` (pairwise). Helper: `convex/lib/identity.ts` → `getExternalId`.
+SamRank receives the same value as `externalId`.
 
 ## Admin-only features
 
-- **Routes:** `/admin` and `/analytics` are wrapped in `AdminOnlyRoute`; non-admins are redirected to `/`.
-- **Nav:** The **Admin** and **Analytics** links in the header are shown only when `getMyRole` returns `"admin"`.
-- **Backend:** `getHuntCountsByState` (analytics) and `listForAdmin` / `setRole` require the caller to be an admin; otherwise they throw.
+Unchanged: `/admin`, `/analytics`, `/system-prompts` via `AdminOnlyRoute`; header links when `getMyRole` is admin.
+
+## Spike verification
+
+See [ENTRA_AUTH_SPIKE.md](./ENTRA_AUTH_SPIKE.md).

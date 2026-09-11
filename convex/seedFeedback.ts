@@ -2,9 +2,9 @@ import { internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
 const SEED_USERS = [
-  { clerkUserId: "seed_user_alice", name: "Alice Chen", email: "alice@example.com" },
-  { clerkUserId: "seed_user_bob", name: "Bob Martinez", email: "bob@example.com" },
-  { clerkUserId: "seed_user_carol", name: "Carol Williams", email: "carol@example.com" },
+  { externalId: "seed_user_alice", name: "Alice Chen", email: "alice@example.com" },
+  { externalId: "seed_user_bob", name: "Bob Martinez", email: "bob@example.com" },
+  { externalId: "seed_user_carol", name: "Carol Williams", email: "carol@example.com" },
 ];
 
 const FEEDBACK_ITEMS: Array<{
@@ -128,7 +128,7 @@ export const run = internalMutation({
       if (!user) throw new Error(`Invalid createdByIndex: ${item.createdByIndex}`);
       const createdAt = now - item.createdAtOffsetDays * dayMs;
       const id = await ctx.db.insert("feedback", {
-        clerkUserId: user.clerkUserId,
+        externalId: user.externalId,
         name: user.name,
         email: user.email,
         title: item.title,
@@ -151,21 +151,21 @@ export const run = internalMutation({
       if (feedbackId === undefined || !item) continue;
       const targetScore = item.voteScore;
       let score = 0;
-      const voters = SEED_USERS.map((u) => u.clerkUserId);
+      const voters = SEED_USERS.map((u) => u.externalId);
       for (let v = 0; v < Math.min(Math.abs(targetScore) + 2, voters.length * 2); v++) {
         const value: 1 | -1 = targetScore >= 0 ? 1 : -1;
-        const clerkUserId = voters[v % voters.length];
-        if (!clerkUserId) continue;
+        const externalId = voters[v % voters.length];
+        if (!externalId) continue;
         const existing = await ctx.db
           .query("feedbackVotes")
           .withIndex("by_feedback_user", (q) =>
-            q.eq("feedbackId", feedbackId).eq("clerkUserId", clerkUserId)
+            q.eq("feedbackId", feedbackId).eq("externalId", externalId)
           )
           .unique();
         if (existing) continue;
         await ctx.db.insert("feedbackVotes", {
           feedbackId,
-          clerkUserId,
+          externalId,
           value,
         });
         score += value;
@@ -192,7 +192,7 @@ export const run = internalMutation({
         if (!rating || !seedUser) continue;
         await ctx.db.insert("feedbackImportance", {
           feedbackId,
-          clerkUserId: seedUser.clerkUserId,
+          externalId: seedUser.externalId,
           rating,
         });
       }
@@ -228,7 +228,7 @@ export const run = internalMutation({
       commentIndex++;
       const id = await ctx.db.insert("feedbackComments", {
         feedbackId,
-        clerkUserId: user.clerkUserId,
+        externalId: user.externalId,
         name: user.name,
         body,
         createdAt,
@@ -300,7 +300,7 @@ export const run = internalMutation({
         if (!seedUser) continue;
         await ctx.db.insert("commentVotes", {
           commentId: c._id,
-          clerkUserId: seedUser.clerkUserId,
+          externalId: seedUser.externalId,
           value: 1,
         });
       }
@@ -309,7 +309,7 @@ export const run = internalMutation({
         if (lastUser) {
           await ctx.db.insert("commentVotes", {
             commentId: c._id,
-            clerkUserId: lastUser.clerkUserId,
+            externalId: lastUser.externalId,
             value: -1,
           });
         }
@@ -324,14 +324,14 @@ export const run = internalMutation({
     if (subF0 && seedUser1) {
       await ctx.db.insert("feedbackSubscriptions", {
         feedbackId: subF0,
-        clerkUserId: seedUser1.clerkUserId,
+        externalId: seedUser1.externalId,
         createdAt: now - 5 * dayMs,
       });
     }
     if (subF2 && seedUser0) {
       await ctx.db.insert("feedbackSubscriptions", {
         feedbackId: subF2,
-        clerkUserId: seedUser0.clerkUserId,
+        externalId: seedUser0.externalId,
         createdAt: now - 2 * dayMs,
       });
     }

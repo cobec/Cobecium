@@ -1,4 +1,5 @@
 # Netlify configuration for Cobecium web app (Vite + React SPA)
+# NOTE: Public Netlify hosting is paused (Entra auth cutover). Kept for reference only.
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
@@ -7,10 +8,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Allow these in repo/build so secrets scan doesn't fail: publishable key (public), JWT issuer domain (URL, not a signing secret).
-  SECRETS_SCAN_OMIT_KEYS = "VITE_CLERK_PUBLISHABLE_KEY,CLERK_JWT_ISSUER_DOMAIN"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_ENTRA_CLIENT_ID,VITE_ENTRA_TENANT_ID,ENTRA_CLIENT_ID,ENTRA_TENANT_ID"
 
-# SPA: serve index.html for routes that don't match a static file (no force = true so /assets/*.js is served correctly)
+# SPA: serve index.html for routes that don't match a static file
 [[redirects]]
   from = "/*"
   to = "/index.html"

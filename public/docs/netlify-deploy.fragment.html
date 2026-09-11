@@ -1,4 +1,8 @@
 <h1>Deploying the Cobecium web app on Netlify</h1>
+<blockquote>
+<p><strong>Paused:</strong> Public Netlify hosting is stopped during the Entra auth cutover.
+Prefer local Vite / cobec-spark. This doc is retained for a future re-host.</p>
+</blockquote>
 <p>This doc covers deploying <strong>only the web app</strong> (Vite + React) to Netlify. The Convex backend runs separately (Convex Cloud or your own self-hosted instance); the app on Netlify talks to it via <code>VITE_CONVEX_URL</code>.</p>
 <hr>
 <h2>What’s already configured</h2>
@@ -34,12 +38,22 @@
 <tbody><tr>
 <td><code>VITE_CONVEX_URL</code></td>
 <td><strong>Yes</strong></td>
-<td>URL the browser uses to reach Convex (e.g. your Convex Cloud deployment URL or your self-hosted Convex URL).</td>
+<td>URL the browser uses to reach Convex</td>
+</tr>
+<tr>
+<td><code>VITE_ENTRA_CLIENT_ID</code></td>
+<td><strong>Yes</strong></td>
+<td>Entra SPA application (client) ID</td>
+</tr>
+<tr>
+<td><code>VITE_ENTRA_TENANT_ID</code></td>
+<td><strong>Yes</strong></td>
+<td>Entra directory (tenant) ID</td>
 </tr>
 <tr>
 <td><code>VITE_ORCHESTRATOR_DOCS_URL</code></td>
 <td>No</td>
-<td>URL for the “orchestrator docs” link in the header (defaults to a placeholder if unset).</td>
+<td>Orchestrator docs link in the header</td>
 </tr>
 </tbody></table>
 <ul>

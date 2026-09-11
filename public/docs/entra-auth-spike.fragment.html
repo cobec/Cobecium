@@ -1,0 +1,95 @@
+<h1>Entra → Convex auth spike</h1>
+<p>Goal: prove <strong>MSAL ID token → Convex <code>getUserIdentity()</code> → <code>users.ensureMe(oid)</code></strong>
+without Clerk, with Netlify hosting paused.</p>
+<h2>Status</h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Remove Clerk / add MSAL</td>
+<td>Done in code</td>
+</tr>
+<tr>
+<td><code>auth.config.ts</code> Entra <code>customJwt</code></td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>clerkUserId</code> → <code>externalId</code> + oid helper</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>UI sign-in (popup)</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>Live Entra app + first login</td>
+<td><strong>You must configure Azure + env</strong></td>
+</tr>
+</tbody></table>
+<h2>Configure (once)</h2>
+<ol>
+<li>Create SPA app registration (see <a href="/docs/auth-and-admin-setup">AUTH_AND_ADMIN_SETUP.md</a>).</li>
+<li>Put IDs in <code>.env.local</code>:</li>
+</ol>
+<pre><code class="language-bash">VITE_ENTRA_CLIENT_ID=&lt;application-id&gt;
+VITE_ENTRA_TENANT_ID=&lt;directory-id&gt;
+# VITE_CONVEX_URL already set for cobec-spark / local
+</code></pre>
+<ol start="3">
+<li>Set Convex env (same IDs) and push functions:</li>
+</ol>
+<pre><code class="language-bash">bunx convex env set ENTRA_TENANT_ID &#39;&lt;directory-id&gt;&#39;
+bunx convex env set ENTRA_CLIENT_ID &#39;&lt;application-id&gt;&#39;
+# after first token decode:
+bunx convex env set LYNX_FIRST_ADMIN_OID &#39;&lt;oid&gt;&#39;
+bunx convex dev   # or your self-hosted push path
+</code></pre>
+<ol start="4">
+<li>Wipe legacy Clerk rows if the deployment still has <code>clerkUserId</code> documents
+(schema no longer accepts that field).</li>
+</ol>
+<h2>Prove it</h2>
+<ol>
+<li><code>bun run dev</code> → open the Vite URL</li>
+<li><strong>Sign in</strong> → Entra popup → account picker</li>
+<li>Confirm Convex auth: open <code>/admin</code> after setting <code>LYNX_FIRST_ADMIN_OID</code>, or
+check Convex logs / dashboard that <code>ensureMe</code> inserted <code>lynxUsers</code> with your oid</li>
+<li>Optional: jwt.io on the ID token — <code>aud</code> = client ID, <code>iss</code> =
+<code>https://login.microsoftonline.com/&lt;tenant&gt;/v2.0</code>, claim <code>oid</code> present</li>
+</ol>
+<h2>Failure modes</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Popup blocked / cancelled</td>
+<td>Allow popups for localhost</td>
+</tr>
+<tr>
+<td>Convex “Unauthenticated” after MSAL login</td>
+<td><code>iss</code>/<code>aud</code> mismatch; tenant <code>common</code> vs GUID; Convex env not set</td>
+</tr>
+<tr>
+<td><code>oid</code> missing on identity</td>
+<td>Add optional claim in Entra token config; helper falls back to <code>sub</code></td>
+</tr>
+<tr>
+<td>Schema errors on lynxUsers</td>
+<td>Old Clerk documents still in table</td>
+</tr>
+</tbody></table>
+<h2>Out of scope for this spike</h2>
+<ul>
+<li>Teams silent SSO (<code>getAuthToken</code>)</li>
+<li>Dual Clerk+Entra</li>
+<li>Netlify redeploy</li>
+<li>Email-merge of historical feedback</li>
+</ul>

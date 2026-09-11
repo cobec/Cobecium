@@ -1,6 +1,6 @@
 # Opportunities integration (Lynx ↔ SamRank)
 
-**Product UI:** Lynx `/opps`, `/opps/approved`, `/opps/status` (Clerk-authenticated).  
+**Product UI:** Lynx `/opps`, `/opps/approved`, `/opps/status` (Entra-authenticated).  
 **Ranking engine:** sibling **SamRank** at `/home/jmartinez/Projects/SamRank` (`.NET 10`, port **`:5190`**).  
 **Bridge:** Convex actions in [`convex/samRank.ts`](../convex/samRank.ts).
 
@@ -17,14 +17,14 @@ samoutput/*.csv  ──ingest──►  SamRank Data/opportunities.json
                                     ├─ rank (team overlay + personal votes)
                                     ├─ Firecrawl enrich links / descriptions
                                     │
-Clerk user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
+Entra user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
 ```
 
 | Layer | Responsibility |
 |-------|----------------|
 | **CSV drops** (`cobecium/samoutput/`) | Corpus membership + structured fields from SAM Databank exports |
 | **SamRank** | Ingest, dedupe, embeddings, ranking, votes, HTTP API, Firecrawl enrichment |
-| **Convex `samRank.ts`** | Clerk identity → SamRank user ensure; proxy feed/vote/search/status/pipeline |
+| **Convex `samRank.ts`** | Entra identity → SamRank user ensure; proxy feed/vote/search/status/pipeline |
 | **Lynx UI** | Opportunity cards, Yes/No/Feedback, semantic search, approved list, status |
 
 ---
@@ -77,7 +77,7 @@ See [`.env.example`](../.env.example).
 | `getStatus` | `GET /api/status` |
 | `runPipeline` | `POST /api/pipeline/run` |
 
-Identity: Clerk `subject` → SamRank `externalId` (sanitized user id under `Data/users/{id}/`).
+Identity: Entra `oid` (via `getExternalId`) → SamRank `externalId` (sanitized user id under `Data/users/{id}/`).
 
 ---
 
@@ -200,13 +200,45 @@ From SamRank feed/search DTOs:
 
 ---
 
+## Export enriched corpus (prod seed)
+
+Do **not** re-seed prod from legacy Databank CSVs (search deep-links + truncated descriptions). Export what SamRank already enriched:
+
+### From Lynx UI
+
+**Opportunities → Status** → **Export corpus for prod seed**
+
+| Button | Result |
+|--------|--------|
+| JSON / CSV (all) | Full store as Lynx seed schema |
+| JSON / CSV (enriched only) | Only rows with workspace detail `samUrl` **and** `descriptionEnrichedAt` |
+| Write JSON on SamRank disk | `SamRank/Data/exports/lynx-opportunities-seed-*.json` |
+
+### From SamRank API (host)
+
+```bash
+curl -s 'http://127.0.0.1:5190/api/export/corpus/meta' | python3 -m json.tool
+curl -OJ 'http://127.0.0.1:5190/api/export/corpus?format=json'
+curl -OJ 'http://127.0.0.1:5190/api/export/corpus?format=csv'
+curl -OJ 'http://127.0.0.1:5190/api/export/corpus?format=json&enrichedLinksOnly=true&enrichedDescriptionsOnly=true'
+curl -sS -X POST http://127.0.0.1:5190/api/export/corpus/write \
+  -H 'Content-Type: application/json' -d '{"format":"json"}'
+```
+
+Seed JSON (`schemaVersion: 1`): `exportedAt`, `purpose`, `stats`, `opportunities[]` with `noticeId`, `title`, `descriptionText`/`Html`, `samUrl`, `samOppId`, `hasDetailUrl`, `descriptionEnriched`, classification/PoP/POC fields, optional rank metadata.
+
+Convex: `samRank.exportCorpusMeta`, `exportCorpusPage`, `writeCorpusExport`.
+
+---
+
 ## Local checklist
 
 1. SamRank up (`systemctl --user status samrank` or Spark dashboard).  
 2. Convex env `SAMRANK_BASE_URL` set (from app container network).  
-3. Clerk signed in → open `/opps`.  
+3. Entra signed in → open `/opps`.  
 4. Drop CSVs into `samoutput/` → Rescan (or wait for watch).  
 5. Optionally run link then description enrichment so Open on SAM.gov and full descriptions are accurate.
+6. Before prod: download seed from Status (or `Data/exports/`) — not legacy CSVs.
 
 ---
 

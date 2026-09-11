@@ -1,5 +1,8 @@
 # Deploying the Cobecium web app on Netlify
 
+> **Paused:** Public Netlify hosting is stopped during the Entra auth cutover.
+> Prefer local Vite / cobec-spark. This doc is retained for a future re-host.
+
 This doc covers deploying **only the web app** (Vite + React) to Netlify. The Convex backend runs separately (Convex Cloud or your own self-hosted instance); the app on Netlify talks to it via `VITE_CONVEX_URL`.
 
 ---
@@ -31,8 +34,10 @@ Set these in **Site configuration** → **Environment variables** (or during the
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_CONVEX_URL` | **Yes** | URL the browser uses to reach Convex (e.g. your Convex Cloud deployment URL or your self-hosted Convex URL). |
-| `VITE_ORCHESTRATOR_DOCS_URL` | No | URL for the “orchestrator docs” link in the header (defaults to a placeholder if unset). |
+| `VITE_CONVEX_URL` | **Yes** | URL the browser uses to reach Convex |
+| `VITE_ENTRA_CLIENT_ID` | **Yes** | Entra SPA application (client) ID |
+| `VITE_ENTRA_TENANT_ID` | **Yes** | Entra directory (tenant) ID |
+| `VITE_ORCHESTRATOR_DOCS_URL` | No | Orchestrator docs link in the header |
 
 - **Convex Cloud:** use the deployment URL from your Convex dashboard (e.g. `https://your-deployment.convex.cloud`).
 - **Self-hosted Convex:** use the public URL where your Convex backend is reachable from the internet (e.g. `https://convex.yourdomain.com`). The Netlify app runs in the browser, so this must be a URL that the **user’s browser** can call.

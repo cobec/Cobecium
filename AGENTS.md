@@ -6,7 +6,7 @@ This file captures project-specific gotchas and learnings so agents (and humans)
 
 ## SAM opportunity ranking (CSV → embed → rank → Lynx `/opps`)
 
-Manual Databank CSV drops live in `samoutput/`. Ranking engine: sibling **SamRank** (`.NET`, `:5190`). Lynx product UI: **`/opps`** (Clerk-authenticated), via Convex actions in `convex/samRank.ts`.
+Manual Databank CSV drops live in `samoutput/`. Ranking engine: sibling **SamRank** (`.NET`, `:5190`). Lynx product UI: **`/opps`** (Entra-authenticated), via Convex actions in `convex/samRank.ts`.
 
 | Doc | Use |
 |-----|-----|
@@ -15,13 +15,15 @@ Manual Databank CSV drops live in `samoutput/`. Ranking engine: sibling **SamRan
 
 **Split of responsibility**
 - **SamRank:** CSV ingest, embeddings (LM Studio), team ranking overlay, preference learning, HTTP `/api/*`, Firecrawl link/description enrichment
-- **Cobecium/Lynx:** Clerk auth, `/opps` feed · approved · status UI, `SAMRANK_BASE_URL` Convex env
+- **Cobecium/Lynx:** Entra auth, `/opps` feed · approved · status UI, `SAMRANK_BASE_URL` Convex env
 
 Set `SAMRANK_BASE_URL=http://cobec-spark:5190` (and optional `SAMRANK_DEFAULT_TEAM_ID=cobec`) in Convex env before using Opportunities.
 
 Corpus membership comes from CSVs. Public SAM.gov detail URLs/full descriptions are optional Firecrawl enrich jobs on SamRank — do not restart SamRank mid-enrich unless necessary.
 
 **POC enrich outcome (~1969 notices):** ~1932 detail URLs; **37** link fails (`no detail link in search results`, mostly inactive/legacy); description job ~1722 updated / **209** extract fails. Details and reconcile commands: [`docs/OPPORTUNITIES_INTEGRATION.md`](docs/OPPORTUNITIES_INTEGRATION.md#poc-enrich-results-corpus-1969-notices-jul-2026). Failure log: `SamRank/Data/enrichment-failures.jsonl`.
+
+**Prod seed:** export enriched corpus from Lynx **Opportunities → Status** (or `GET /api/export/corpus`) — not legacy Databank CSVs. See [`docs/OPPORTUNITIES_INTEGRATION.md`](docs/OPPORTUNITIES_INTEGRATION.md#export-enriched-corpus-prod-seed).
 
 ---
 

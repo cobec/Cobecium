@@ -1,5 +1,5 @@
 <h1>Opportunities integration (Lynx ↔ SamRank)</h1>
-<p><strong>Product UI:</strong> Lynx <code>/opps</code>, <code>/opps/approved</code>, <code>/opps/status</code> (Clerk-authenticated).<br><strong>Ranking engine:</strong> sibling <strong>SamRank</strong> at <code>/home/jmartinez/Projects/SamRank</code> (<code>.NET 10</code>, port <strong><code>:5190</code></strong>).<br><strong>Bridge:</strong> Convex actions in <a href="../convex/samRank.ts"><code>convex/samRank.ts</code></a>.</p>
+<p><strong>Product UI:</strong> Lynx <code>/opps</code>, <code>/opps/approved</code>, <code>/opps/status</code> (Entra-authenticated).<br><strong>Ranking engine:</strong> sibling <strong>SamRank</strong> at <code>/home/jmartinez/Projects/SamRank</code> (<code>.NET 10</code>, port <strong><code>:5190</code></strong>).<br><strong>Bridge:</strong> Convex actions in <a href="../convex/samRank.ts"><code>convex/samRank.ts</code></a>.</p>
 <p>Embeddings and preference learning stay on SamRank. Convex/Lynx never re-embeds.</p>
 <hr>
 <h2>Architecture</h2>
@@ -9,7 +9,7 @@
                                     ├─ rank (team overlay + personal votes)
                                     ├─ Firecrawl enrich links / descriptions
                                     │
-Clerk user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
+Entra user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
 </code></pre>
 <table>
 <thead>
@@ -28,7 +28,7 @@ Clerk user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► S
 </tr>
 <tr>
 <td><strong>Convex <code>samRank.ts</code></strong></td>
-<td>Clerk identity → SamRank user ensure; proxy feed/vote/search/status/pipeline</td>
+<td>Entra identity → SamRank user ensure; proxy feed/vote/search/status/pipeline</td>
 </tr>
 <tr>
 <td><strong>Lynx UI</strong></td>
@@ -137,7 +137,7 @@ docker compose exec app bunx convex env set SAMRANK_DEFAULT_TEAM_ID &#39;cobec&#
 <td><code>POST /api/pipeline/run</code></td>
 </tr>
 </tbody></table>
-<p>Identity: Clerk <code>subject</code> → SamRank <code>externalId</code> (sanitized user id under <code>Data/users/{id}/</code>).</p>
+<p>Identity: Entra <code>oid</code> (via <code>getExternalId</code>) → SamRank <code>externalId</code> (sanitized user id under <code>Data/users/{id}/</code>).</p>
 <hr>
 <h2>SamRank ops (Spark)</h2>
 <table>
@@ -310,19 +310,55 @@ curl -s http://127.0.0.1:5190/api/enrich/descriptions/status | python3 -m json.t
 <li><code>samUrl</code> (prefer workspace detail URL after link enrich)</li>
 </ul>
 <hr>
+<h2>Export enriched corpus (prod seed)</h2>
+<p>Do <strong>not</strong> re-seed prod from legacy Databank CSVs (search deep-links + truncated descriptions). Export what SamRank already enriched:</p>
+<h3>From Lynx UI</h3>
+<p><strong>Opportunities → Status</strong> → <strong>Export corpus for prod seed</strong></p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JSON / CSV (all)</td>
+<td>Full store as Lynx seed schema</td>
+</tr>
+<tr>
+<td>JSON / CSV (enriched only)</td>
+<td>Only rows with workspace detail <code>samUrl</code> <strong>and</strong> <code>descriptionEnrichedAt</code></td>
+</tr>
+<tr>
+<td>Write JSON on SamRank disk</td>
+<td><code>SamRank/Data/exports/lynx-opportunities-seed-*.json</code></td>
+</tr>
+</tbody></table>
+<h3>From SamRank API (host)</h3>
+<pre><code class="language-bash">curl -s &#39;http://127.0.0.1:5190/api/export/corpus/meta&#39; | python3 -m json.tool
+curl -OJ &#39;http://127.0.0.1:5190/api/export/corpus?format=json&#39;
+curl -OJ &#39;http://127.0.0.1:5190/api/export/corpus?format=csv&#39;
+curl -OJ &#39;http://127.0.0.1:5190/api/export/corpus?format=json&amp;enrichedLinksOnly=true&amp;enrichedDescriptionsOnly=true&#39;
+curl -sS -X POST http://127.0.0.1:5190/api/export/corpus/write \
+  -H &#39;Content-Type: application/json&#39; -d &#39;{&quot;format&quot;:&quot;json&quot;}&#39;
+</code></pre>
+<p>Seed JSON (<code>schemaVersion: 1</code>): <code>exportedAt</code>, <code>purpose</code>, <code>stats</code>, <code>opportunities[]</code> with <code>noticeId</code>, <code>title</code>, <code>descriptionText</code>/<code>Html</code>, <code>samUrl</code>, <code>samOppId</code>, <code>hasDetailUrl</code>, <code>descriptionEnriched</code>, classification/PoP/POC fields, optional rank metadata.</p>
+<p>Convex: <code>samRank.exportCorpusMeta</code>, <code>exportCorpusPage</code>, <code>writeCorpusExport</code>.</p>
+<hr>
 <h2>Local checklist</h2>
 <ol>
 <li>SamRank up (<code>systemctl --user status samrank</code> or Spark dashboard).  </li>
 <li>Convex env <code>SAMRANK_BASE_URL</code> set (from app container network).  </li>
-<li>Clerk signed in → open <code>/opps</code>.  </li>
+<li>Entra signed in → open <code>/opps</code>.  </li>
 <li>Drop CSVs into <code>samoutput/</code> → Rescan (or wait for watch).  </li>
 <li>Optionally run link then description enrichment so Open on SAM.gov and full descriptions are accurate.</li>
+<li>Before prod: download seed from Status (or <code>Data/exports/</code>) — not legacy CSVs.</li>
 </ol>
 <hr>
 <h2>Related docs</h2>
 <ul>
-<li>Agent / ranking design: <a href="./SAM_OPPORTUNITY_RANKING_AGENT.md"><code>SAM_OPPORTUNITY_RANKING_AGENT.md</code></a>  </li>
-<li>Agent gotchas: <a href="../AGENTS.md"><code>../AGENTS.md</code></a>  </li>
+<li>Agent / ranking design: <a href="/docs/sam-opportunity-ranking-agent"><code>SAM_OPPORTUNITY_RANKING_AGENT.md</code></a>  </li>
+<li>Agent gotchas: <a href="/docs/agents"><code>../AGENTS.md</code></a>  </li>
 <li>SamOpps (optional official Opportunities API, key required): <code>/home/jmartinez/Projects/SamOpps/</code>  </li>
 <li>SamRank skill: <code>/home/jmartinez/Projects/SamRank/.cursor/skills/sam-opportunity-ranking/SKILL.md</code></li>
 </ul>

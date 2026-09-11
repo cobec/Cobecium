@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Opportunities integration (Lynx ↔ SamRank) · Lynx Docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #1a1a1e;
@@ -21,11 +24,55 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.65;
-      padding: 1.5rem;
+    }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .top {
+      border-bottom: 4px solid var(--orange);
+      padding: 1rem 1.25rem 0.85rem;
+      text-align: center;
+    }
+    .top a.brand {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-size: 1.75rem;
+      text-transform: uppercase;
+    }
+    .top .tag {
+      margin: 0.25rem 0 0;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+    }
+    .top nav {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .top nav a {
+      border: 2px solid var(--teal);
+      color: var(--text);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.4rem 0.75rem;
+    }
+    .top nav a:hover, .top nav a.active {
+      border-color: var(--orange);
+      background: var(--orange);
+      color: #111;
     }
     .doc {
       max-width: 48rem;
       margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+      flex: 1;
     }
     .meta {
       font-size: 0.75rem;
@@ -36,12 +83,8 @@
       padding-bottom: 0.75rem;
       border-bottom: 2px solid var(--orange);
     }
-    h1, h2, h3, h4 {
-      line-height: 1.25;
-      margin-top: 1.75rem;
-      margin-bottom: 0.75rem;
-    }
-    h1 { font-size: 1.75rem; color: var(--text); }
+    h1, h2, h3, h4 { line-height: 1.25; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+    h1 { font-size: 1.75rem; }
     h2 { font-size: 1.25rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
     h3 { font-size: 1.05rem; color: var(--teal); }
     p, ul, ol, table, pre, blockquote { margin: 0 0 1rem; }
@@ -52,27 +95,16 @@
       font-size: 0.88em;
       background: var(--card);
       padding: 0.1em 0.35em;
-      border-radius: 2px;
     }
     pre {
       background: var(--card);
       border: 1px solid var(--border);
       padding: 1rem;
       overflow-x: auto;
-      border-radius: 2px;
     }
     pre code { background: none; padding: 0; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.92rem;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 0.5rem 0.65rem;
-      text-align: left;
-      vertical-align: top;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border); padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
     th { background: var(--card); color: var(--orange); }
     blockquote {
       margin-left: 0;
@@ -82,13 +114,30 @@
       background: var(--card);
     }
     hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .foot {
+      border-top: 4px solid var(--orange);
+      padding: 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
-  <article class="doc">
-    <p class="meta">Source: docs/OPPORTUNITIES_INTEGRATION.md</p>
-    <h1>Opportunities integration (Lynx ↔ SamRank)</h1>
-<p><strong>Product UI:</strong> Lynx <code>/opps</code>, <code>/opps/approved</code>, <code>/opps/status</code> (Clerk-authenticated).<br><strong>Ranking engine:</strong> sibling <strong>SamRank</strong> at <code>/home/jmartinez/Projects/SamRank</code> (<code>.NET 10</code>, port <strong><code>:5190</code></strong>).<br><strong>Bridge:</strong> Convex actions in <a href="../convex/samRank.ts"><code>convex/samRank.ts</code></a>.</p>
+  <div class="shell">
+    <header class="top">
+      <a class="brand" href="/">Lynx</a>
+      <p class="tag">Documentation</p>
+      <nav aria-label="Docs">
+        <a href="/docs">All docs</a>
+        <a class="active" href="/docs/opportunities-integration">Opportunities integration (Lynx ↔ SamRank)</a>
+        <a href="/app">App</a>
+      </nav>
+    </header>
+    <article class="doc">
+      <p class="meta">Source: docs/OPPORTUNITIES_INTEGRATION.md · slug: opportunities-integration</p>
+      <h1>Opportunities integration (Lynx ↔ SamRank)</h1>
+<p><strong>Product UI:</strong> Lynx <code>/opps</code>, <code>/opps/approved</code>, <code>/opps/status</code> (Entra-authenticated).<br><strong>Ranking engine:</strong> sibling <strong>SamRank</strong> at <code>/home/jmartinez/Projects/SamRank</code> (<code>.NET 10</code>, port <strong><code>:5190</code></strong>).<br><strong>Bridge:</strong> Convex actions in <a href="../convex/samRank.ts"><code>convex/samRank.ts</code></a>.</p>
 <p>Embeddings and preference learning stay on SamRank. Convex/Lynx never re-embeds.</p>
 <hr>
 <h2>Architecture</h2>
@@ -98,7 +147,7 @@
                                     ├─ rank (team overlay + personal votes)
                                     ├─ Firecrawl enrich links / descriptions
                                     │
-Clerk user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
+Entra user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► SamRank /api/*
 </code></pre>
 <table>
 <thead>
@@ -117,7 +166,7 @@ Clerk user ──► Lynx /opps ──► Convex samRank.* ──HTTP──► S
 </tr>
 <tr>
 <td><strong>Convex <code>samRank.ts</code></strong></td>
-<td>Clerk identity → SamRank user ensure; proxy feed/vote/search/status/pipeline</td>
+<td>Entra identity → SamRank user ensure; proxy feed/vote/search/status/pipeline</td>
 </tr>
 <tr>
 <td><strong>Lynx UI</strong></td>
@@ -226,7 +275,7 @@ docker compose exec app bunx convex env set SAMRANK_DEFAULT_TEAM_ID &#39;cobec&#
 <td><code>POST /api/pipeline/run</code></td>
 </tr>
 </tbody></table>
-<p>Identity: Clerk <code>subject</code> → SamRank <code>externalId</code> (sanitized user id under <code>Data/users/{id}/</code>).</p>
+<p>Identity: Entra <code>oid</code> (via <code>getExternalId</code>) → SamRank <code>externalId</code> (sanitized user id under <code>Data/users/{id}/</code>).</p>
 <hr>
 <h2>SamRank ops (Spark)</h2>
 <table>
@@ -399,23 +448,61 @@ curl -s http://127.0.0.1:5190/api/enrich/descriptions/status | python3 -m json.t
 <li><code>samUrl</code> (prefer workspace detail URL after link enrich)</li>
 </ul>
 <hr>
+<h2>Export enriched corpus (prod seed)</h2>
+<p>Do <strong>not</strong> re-seed prod from legacy Databank CSVs (search deep-links + truncated descriptions). Export what SamRank already enriched:</p>
+<h3>From Lynx UI</h3>
+<p><strong>Opportunities → Status</strong> → <strong>Export corpus for prod seed</strong></p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JSON / CSV (all)</td>
+<td>Full store as Lynx seed schema</td>
+</tr>
+<tr>
+<td>JSON / CSV (enriched only)</td>
+<td>Only rows with workspace detail <code>samUrl</code> <strong>and</strong> <code>descriptionEnrichedAt</code></td>
+</tr>
+<tr>
+<td>Write JSON on SamRank disk</td>
+<td><code>SamRank/Data/exports/lynx-opportunities-seed-*.json</code></td>
+</tr>
+</tbody></table>
+<h3>From SamRank API (host)</h3>
+<pre><code class="language-bash">curl -s &#39;http://127.0.0.1:5190/api/export/corpus/meta&#39; | python3 -m json.tool
+curl -OJ &#39;http://127.0.0.1:5190/api/export/corpus?format=json&#39;
+curl -OJ &#39;http://127.0.0.1:5190/api/export/corpus?format=csv&#39;
+curl -OJ &#39;http://127.0.0.1:5190/api/export/corpus?format=json&amp;enrichedLinksOnly=true&amp;enrichedDescriptionsOnly=true&#39;
+curl -sS -X POST http://127.0.0.1:5190/api/export/corpus/write \
+  -H &#39;Content-Type: application/json&#39; -d &#39;{&quot;format&quot;:&quot;json&quot;}&#39;
+</code></pre>
+<p>Seed JSON (<code>schemaVersion: 1</code>): <code>exportedAt</code>, <code>purpose</code>, <code>stats</code>, <code>opportunities[]</code> with <code>noticeId</code>, <code>title</code>, <code>descriptionText</code>/<code>Html</code>, <code>samUrl</code>, <code>samOppId</code>, <code>hasDetailUrl</code>, <code>descriptionEnriched</code>, classification/PoP/POC fields, optional rank metadata.</p>
+<p>Convex: <code>samRank.exportCorpusMeta</code>, <code>exportCorpusPage</code>, <code>writeCorpusExport</code>.</p>
+<hr>
 <h2>Local checklist</h2>
 <ol>
 <li>SamRank up (<code>systemctl --user status samrank</code> or Spark dashboard).  </li>
 <li>Convex env <code>SAMRANK_BASE_URL</code> set (from app container network).  </li>
-<li>Clerk signed in → open <code>/opps</code>.  </li>
+<li>Entra signed in → open <code>/opps</code>.  </li>
 <li>Drop CSVs into <code>samoutput/</code> → Rescan (or wait for watch).  </li>
 <li>Optionally run link then description enrichment so Open on SAM.gov and full descriptions are accurate.</li>
+<li>Before prod: download seed from Status (or <code>Data/exports/</code>) — not legacy CSVs.</li>
 </ol>
 <hr>
 <h2>Related docs</h2>
 <ul>
-<li>Agent / ranking design: <a href="./SAM_OPPORTUNITY_RANKING_AGENT.md"><code>SAM_OPPORTUNITY_RANKING_AGENT.md</code></a>  </li>
-<li>Agent gotchas: <a href="../AGENTS.md"><code>../AGENTS.md</code></a>  </li>
+<li>Agent / ranking design: <a href="/docs/sam-opportunity-ranking-agent"><code>SAM_OPPORTUNITY_RANKING_AGENT.md</code></a>  </li>
+<li>Agent gotchas: <a href="/docs/agents"><code>../AGENTS.md</code></a>  </li>
 <li>SamOpps (optional official Opportunities API, key required): <code>/home/jmartinez/Projects/SamOpps/</code>  </li>
 <li>SamRank skill: <code>/home/jmartinez/Projects/SamRank/.cursor/skills/sam-opportunity-ranking/SKILL.md</code></li>
 </ul>
 
-  </article>
+    </article>
+    <footer class="foot">Cobec · Lynx · HTML docs generated from Markdown</footer>
+  </div>
 </body>
 </html>
